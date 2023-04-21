@@ -4,13 +4,13 @@ Set up an Ethereum Validator in just 1 click, as opposed to hours normally spent
 # Summary
 This Python script simplifies and automates the installation and configuration process of an Ethereum validator node.
 
-It is based on [Somer Esat's - Lighthouse/Geth](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) guide and uses a single Python script to automate the entire process.
+It's based on [Somer Esat's - Lighthouse/Geth](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) guide and uses a single Python script to automate the setup process.
 
-**Important Note:** This script does not handle generating validator keys, keystores, mnemonics, or any other security related items. It simply prepares the computer for staking by installing the binaries, creating users, writing service files etc. 
+**Important Note:** This script does not generate any security-related items such as validator keystore, deposit data, or mnemonic. It prepares the computer for staking by installing the binaries, creating users, writing service files, etc.
 
-Once installed, Geth and Ligthouse will be fully configured and can immediately begin syncing.
+After the ~1 minute installation, Geth and Ligthouse will be fully configured to begin syncing immediately.
 
-If you want to run a full validator, you'll also need to generate a mnemonic and keystores to run the validator. Please refer to [Somer's guide](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) or this [Ubuntu - Key Generation Guide](https://agstakingco.gitbook.io/eth-2-0-key-generation-ubuntu-live-usb/) to learn more.
+If you want to run a full validator, you'll also need import an existing keysore or generate new keystores to run the validator. Please refer to [Somer's guide](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) or this [Ubuntu - Key Generation Guide](https://agstakingco.gitbook.io/eth-2-0-key-generation-ubuntu-live-usb/) to learn more.
 
 # Validator Install Script
 The `validator_install.py` script performs the following tasks:
@@ -36,6 +36,33 @@ The `validator_install.py` script performs the following tasks:
 
 `python3 validator_install/validator_install.py`  
 
-<br>  
+<br />  
 
+**After successful installation, you can start the services:**
+
+`sudo systemctl start geth`
+
+`sudo systemctl start lighthousebeacon`
+
+`sudo systemctl start lighthousevalidator`
+
+<br />
+**The open 3 new terminals and view the journals:**
+
+`sudo journalctl -fu geth.service`
+
+`sudo journalctl -fu lighthousebeacon.service`
+
+`sudo journalctl -fu lighthousevalidator.service`
+
+\
+The services should start, find peers, and eventually begin syncing. If you notice any errors (red/yellow), visit [EthStaker Discord](https://discord.com/invite/ucsTcA2wTq) for help.
+
+
+You can stop the services by changing the "start" commands to "stop".
+
+
+That's it, happpy staking! Feel free to contribute to the project if you'd like to add other clients!
+
+\
 **Disclaimer:** This script is for testing purposes only. Do not use on mainnet Validators.
