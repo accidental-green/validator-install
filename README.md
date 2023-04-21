@@ -8,7 +8,7 @@ It's based on [Somer Esat's - Lighthouse/Geth](https://someresat.medium.com/guid
 
 **Important Note:** This script does not generate any security-related items such as validator keystore, deposit data, or mnemonic. It prepares the computer for staking by installing the binaries, creating users, writing service files, etc.
 
-After the ~1 minute installation, Geth and Ligthouse will be fully configured to begin syncing immediately.
+After running the script, Geth and Ligthouse will be installed and fully configured to begin syncing.
 
 If you want to run a full validator, you'll also need import an existing keysore or generate new keystores to run the validator. Please refer to [Somer's guide](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) or this [Ubuntu - Key Generation Guide](https://agstakingco.gitbook.io/eth-2-0-key-generation-ubuntu-live-usb/) to learn more.
 
