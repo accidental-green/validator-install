@@ -5,6 +5,7 @@ import tarfile
 import shutil
 import subprocess
 
+# Prompt User to select a network
 def is_valid_network(network):
     valid_networks = ['MAINNET', 'GOERLI', 'SEPOLIA', 'RINKEBY', 'PRATER', 'GNOSIS']
     return network in valid_networks
@@ -20,8 +21,7 @@ while True:
 eth_network = eth_network.lower()
 eth_network_cap = eth_network.capitalize()
 
-import re
-
+# Prompt User for validator tips address (or skip)
 def is_valid_eth_address(address):
     pattern = re.compile("^0x[a-fA-F0-9]{40}$")
     return bool(pattern.match(address))
@@ -38,6 +38,7 @@ while True:
     else:
         print("Invalid Ethereum address. Please try again.")
 
+# Prompt user for chekcpoint sync (or skip)
 def prompt_checkpoint_sync_url():
     sync_urls = [
         ("No CheckpointSyncURL (skip)", None),
