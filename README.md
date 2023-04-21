@@ -1,12 +1,12 @@
 # Ethereum Validator - Automated Setup
-Install and configure an Ethereum Validator in 1 minute with just 1 click, as opposed to hours normally spent on manual configuration.
+Install and configure an Ethereum Validator (mainnet/testnet) in 1 click, as opposed to hours normally spent on manual configuration.
 
 # Summary
-This Python script simplifies and automates the installation and configuration process of an Ethereum validator node.
+Python script that simplifies and automates the installation and configuration of the Ethereum validator node.
 
 It's based on [Somer Esat's - Lighthouse/Geth](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) guide and uses a single Python script to automate the setup process.
 
-**Important Note:** This script does not generate any security-related items such as validator keystore, deposit data, or mnemonic. It prepares the computer for staking by installing the binaries, creating users, writing service files, etc.
+**Important Note:** This script does not generate any security-related items such as validator keystore, deposit data, or mnemonic. It simply prepares the node for staking by installing the binaries, creating users, writing service files, etc.
 
 After running the script, Geth and Ligthouse will be installed and fully configured to begin syncing.
 
@@ -32,7 +32,7 @@ The `validator_install.py` script performs the following tasks:
 
 `sudo apt-get install git`
 
-`git clone https://github.com/PyStakers/validator_install.git`
+`git clone https://github.com/accidental-green/validator_install.git`
 
 `python3 validator_install/validator_install.py`  
 
