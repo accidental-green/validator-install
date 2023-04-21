@@ -1,5 +1,5 @@
-# Ethereum Validator - Automated Installation
-Set up an Ethereum Validator in just 1 click, as opposed to hours normally spent on manual configuration.
+# Ethereum Validator - Automated Setup
+Install and configure an Ethereum Validator in 1 minute with just 1 click, as opposed to hours normally spent on manual configuration.
 
 # Summary
 This Python script simplifies and automates the installation and configuration process of an Ethereum validator node.
@@ -47,7 +47,8 @@ The `validator_install.py` script performs the following tasks:
 `sudo systemctl start lighthousevalidator`
 
 <br />
-**The open 3 new terminals and view the journals:**
+
+**Then open 3 new terminals and view the journals:**
 
 `sudo journalctl -fu geth.service`
 
