@@ -1,4 +1,4 @@
-# Ethereum Validator - Automated Install
+# Ethereum Validator - Automated Installation
 Set up an Ethereum Validator in just 1 click, as opposed to hours normally spent on manual configuration.
 
 # Summary
