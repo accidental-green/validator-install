@@ -28,7 +28,7 @@ The `validator_install.py` script performs the following tasks:
 
 `sudo apt-get update`
 
-`sudo pip install requests`
+`pip install requests`
 
 `sudo apt-get install git`
 
