@@ -32,9 +32,9 @@ The `validator_install.py` script performs the following tasks:
 
 `sudo apt-get install git`
 
-`git clone https://github.com/accidental-green/validator_install.git`
+`git clone https://github.com/accidental-green/validator-install.git`
 
-`python3 validator_install/validator_install.py`  
+`python3 validator-install/validator_install.py`  
 
 <br />  
 
