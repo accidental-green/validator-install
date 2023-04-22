@@ -10,14 +10,18 @@ It's based on [Somer Esat's - Lighthouse/Geth](https://someresat.medium.com/guid
 
 After running the script, Geth and Ligthouse will be installed and fully configured to begin syncing.
 
-If you want to run a full validator, you'll also need import an existing keysore or generate new keystores to run the validator. Please refer to [Somer's guide](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) or this [Ubuntu - Key Generation Guide](https://agstakingco.gitbook.io/eth-2-0-key-generation-ubuntu-live-usb/) to learn more.
+If you want to run a full validator, you'll also need import an existing keystore or generate new keystores to run the validator. 
+
+You can follow [Somer's guide](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) to safely generate keys offline and import the keystores. 
+
+Other key generation resources include: [Waygu Key Generator](https://github.com/stake-house/wagyu-key-gen), [Ethereum Deposit CLI](https://github.com/ethereum/staking-deposit-cli), and [Ubuntu - Key Generation Guide](https://agstakingco.gitbook.io/eth-2-0-key-generation-ubuntu-live-usb/)
 
 # Validator Install Script
 The `validator_install.py` script performs the following tasks:
 
-1) Prompts user to select Ethereum network (mainnet / testnet).
-2) Prompts user to set Ethereum address for validator tips (optional).
-3) Prompts user to set Checkpoint Sync (optional).
+1) Allows you to select Ethereum network (mainnet / testnet).
+2) Lets you set an Ethereum address for validator tips (optional).
+3) Lets you set Checkpoint Sync URL (optional).
 4) Installs and configures Universal Firewall (ufw).
 5) Creates necessary users, directories, and files.
 6) Downloads and installs the latest Geth and Lighthouse binaries.
@@ -28,9 +32,9 @@ The `validator_install.py` script performs the following tasks:
 
 `sudo apt-get update`
 
-`pip install requests`
-
 `sudo apt-get install git`
+
+`pip install requests`
 
 `git clone https://github.com/accidental-green/validator-install.git`
 
