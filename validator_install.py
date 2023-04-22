@@ -215,8 +215,7 @@ TimeoutStopSec=600
 ExecStart=/usr/local/bin/geth \\
   --{eth_network} \\
   --datadir /var/lib/geth \\
-  --authrpc.jwtsecret /var/lib/jwtsecret/jwt.hex \\
-  --db.engine pebble
+  --authrpc.jwtsecret /var/lib/jwtsecret/jwt.hex
 
 [Install]
 WantedBy=default.target
