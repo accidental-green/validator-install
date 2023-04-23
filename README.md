@@ -14,7 +14,7 @@ If you want to run a full validator, you'll also need import an existing keystor
 
 You can follow [Somer's guide](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) to safely generate keys offline and import the keystores. 
 
-Other key generation resources include: [Waygu Key Generator](https://github.com/stake-house/wagyu-key-gen), [Ethereum Deposit CLI](https://github.com/ethereum/staking-deposit-cli), and [Ubuntu - Key Generation Guide](https://agstakingco.gitbook.io/eth-2-0-key-generation-ubuntu-live-usb/)
+Key Generation Resources: [Waygu Key Generator](https://github.com/stake-house/wagyu-key-gen), [Ethereum Deposit CLI](https://github.com/ethereum/staking-deposit-cli), and [Ubuntu - Key Generation Guide](https://agstakingco.gitbook.io/eth-2-0-key-generation-ubuntu-live-usb/)
 
 # Validator Install Script
 The `validator_install.py` script performs the following tasks:
@@ -52,7 +52,7 @@ The `validator_install.py` script performs the following tasks:
 
 <br />
 
-**Then open 3 new terminals and view the journals:**
+**Open 3 new terminals (`ctrl+alt+t`) and view the journals:**
 
 `sudo journalctl -fu geth.service`
 
