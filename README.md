@@ -1,14 +1,17 @@
 # Ethereum Validator - Automated Setup
-Install and configure an Ethereum Validator (mainnet/testnet) in 1 click, as opposed to hours normally spent on manual configuration.
+Install and configure an Ethereum Validator (mainnet/testnet) in 1 click, as opposed to hours normally spent on manual configuration.  
+
+Now updated to include multiple clients (geth, besu, nethermind, teku, nimbus, lighthouse, prysm)
+
 
 # Summary
 Python script that simplifies and automates the installation and configuration of the Ethereum validator node.
 
-It's based on [Somer Esat's - Lighthouse/Geth](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) guide and uses a single Python script to automate the setup process.
+It's based on [Somer Esat's - Lighthouse/Geth](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) guide and has been expanded to include multple execution and consensus engines with a single Python script to automate the setup process.
 
 **Important Note:** This script does not generate any security-related items such as validator keystore, deposit data, or mnemonic. It simply prepares the node for staking by installing the binaries, creating users, writing service files, etc.
 
-After running the script, Geth and Ligthouse will be installed and fully configured to begin syncing.
+After running the script, Geth and Ligthouse (or whichever clients you choose) will be installed and fully configured to begin syncing.
 
 If you want to run a full validator, you'll also need import an existing keystore or generate new keystores to run the validator. 
 
@@ -38,11 +41,13 @@ The `validator_install.py` script performs the following tasks:
 
 `git clone https://github.com/accidental-green/validator-install.git`
 
-`python3 validator-install/validator_install.py`  
+`python3 validator-install/validator_install-multi.py`  
 
 <br />  
 
 **After successful installation, you can start the services:**
+
+Note: Change name of client (geth, besu, nethermind, teku, nimbus, lighthousebeacon, lighthousevalidator, prysmbeacon, prysmvalidator)
 
 `sudo systemctl start geth`
 
