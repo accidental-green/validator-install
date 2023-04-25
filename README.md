@@ -41,7 +41,7 @@ The `validator_install.py` script performs the following tasks:
 
 `git clone https://github.com/accidental-green/validator-install.git`
 
-`python3 validator-install/validator_install-multi.py`  
+`python3 validator-install/validator_install_multi.py`  
 
 <br />  
 
