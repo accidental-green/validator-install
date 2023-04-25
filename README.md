@@ -22,14 +22,16 @@ Key Generation Resources: [Waygu Key Generator](https://github.com/stake-house/w
 # Validator Install Script
 The `validator_install.py` script performs the following tasks:
 
-1) Allows you to select Ethereum network (mainnet / testnet).
-2) Lets you set an Ethereum address for validator tips (optional).
-3) Lets you set Checkpoint Sync URL (optional).
-4) Installs and configures Universal Firewall (ufw).
-5) Creates necessary users, directories, and files.
-6) Downloads and installs the latest Geth and Lighthouse binaries.
-7) Sets up and writes service files for Geth, Lighthouse Beacon, and Lighthouse Validator.
-8) Displays a summary of the installation.
+1) Choose Ethereum network (mainnet, goerli, sepolia).
+2) Choose Execution Client (Nethermind, Besu, Geth)
+3) Choose Consensus Client (Nimbus, Teku, Lighthouse, Prysm)
+4) Lets you set an Ethereum address for validator tips (optional).
+5) Lets you set Checkpoint Sync URL (optional).
+6) Installs and configures Universal Firewall (ufw).
+7) Creates necessary users, directories, and files.
+8) Downloads and installs the latest client binaries.
+9) Writes and saves service files for Execution, Beacon, and Validator.
+10) Displays a summary of the installation.
 
 **To run the script, use these commands:**
 
