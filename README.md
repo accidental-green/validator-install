@@ -13,7 +13,7 @@ It's based on [Somer Esat's - Lighthouse/Geth](https://someresat.medium.com/guid
 
 After running the script, Geth and Ligthouse (or whichever clients you choose) will be installed and fully configured to begin syncing.
 
-If you want to run a full validator, you'll also need import an existing keystore or generate new keystores to run the validator. 
+If you want to run a full validator, you'll also need to import an existing keystore or generate new keystores to run the validator. 
 
 You can follow [Somer's guide](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) to safely generate keys offline and import the keystores. 
 
