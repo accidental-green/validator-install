@@ -137,6 +137,25 @@ if 'sync_url' not in locals() or sync_url is None:
     sync_url = None
 
 
+def prompt_firewall_settings():
+    message = (
+        "\n################################\n\nFIREWALL SETTINGS\n\n"
+        "Port 22 is used for remote logins. If you are staking from home, it is recommended to disable port 22.\n\n"
+        "Would you like to disable port 22 (yes/no)? "
+    )
+    while True:
+        user_input = input(message).lower()
+        if user_input == "yes":
+            return "disabled"
+        elif user_input == "no":
+            return "enabled"
+        else:
+            print("Invalid input. Please enter 'yes' or 'no'.")
+
+if __name__ == "__main__":
+    port22_status = prompt_firewall_settings()
+    print(f"Port 22 is currently {port22_status}.")
+
 # Install ufw
 subprocess.run(['sudo', 'apt', 'install', 'ufw'])
 
@@ -146,9 +165,15 @@ subprocess.run(['sudo', 'ufw', 'default', 'allow', 'outgoing'])
 
 # Allow specific ports
 subprocess.run(['sudo', 'ufw', 'allow', '6673/tcp'])
-subprocess.run(['sudo', 'ufw', 'deny', '22/tcp'])
 subprocess.run(['sudo', 'ufw', 'allow', '30303'])
 subprocess.run(['sudo', 'ufw', 'allow', '9000'])
+
+# Port 22
+if port22_status == "disabled":
+    subprocess.run(['sudo', 'ufw', 'deny', '22/tcp'])
+    print("Port 22 has been disabled.")
+else:
+    print("Port 22 remains enabled.")
 
 # Enable and check status
 subprocess.run(['sudo', 'ufw', 'enable'])
