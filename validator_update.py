@@ -368,6 +368,7 @@ if consensus_client == 'lighthouse':
     print(f"Download URL: {download_url}")
 
 ######## PRINT OUTPUT ############
+print(\n"Update Successful! See versions listed below:")
 # Geth Print
 if eth_exec_client == 'geth':
     geth_version = subprocess.run(["geth", "--version"], stdout=subprocess.PIPE).stdout
