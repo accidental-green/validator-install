@@ -19,6 +19,23 @@ You can follow [Somer's guide](https://someresat.medium.com/guide-to-staking-on-
 
 Key Generation Resources: [Waygu Key Generator](https://github.com/stake-house/wagyu-key-gen), [Ethereum Deposit CLI](https://github.com/ethereum/staking-deposit-cli), and [Ubuntu - Key Generation Guide](https://agstakingco.gitbook.io/eth-2-0-key-generation-ubuntu-live-usb/)
 
+# Validator Update Script
+`vaildator_update.py` is a simple Python script to update the execution and consensus client of your choice. 
+
+Supports: Geth, Besu, Nethermind, Teku, Nimbus, Lighthouse, and Prysm.
+
+**To run the update script, use these commands:**
+
+`sudo apt-get update`
+
+`sudo apt-get install git`
+
+`pip install requests`
+
+`git clone https://github.com/accidental-green/validator-install.git`
+
+`python3 validator-install/validator_update.py`  
+
 # Validator Install Script
 The `validator_install.py` script performs the following tasks:
 
