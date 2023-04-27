@@ -5,6 +5,7 @@ Now updated to include multiple clients (geth, besu, nethermind, teku, nimbus, l
 
 
 # Summary
+
 Python script that simplifies and automates the installation and configuration of the Ethereum validator node.
 
 It's based on [Somer Esat's - Lighthouse/Geth](https://someresat.medium.com/guide-to-staking-on-ethereum-ubuntu-lighthouse-773f5d982e03) guide and has been expanded to include multple execution and consensus engines with a single Python script to automate the setup process.
@@ -20,6 +21,7 @@ You can follow [Somer's guide](https://someresat.medium.com/guide-to-staking-on-
 Key Generation Resources: [Waygu Key Generator](https://github.com/stake-house/wagyu-key-gen), [Ethereum Deposit CLI](https://github.com/ethereum/staking-deposit-cli), and [Ubuntu - Key Generation Guide](https://agstakingco.gitbook.io/eth-2-0-key-generation-ubuntu-live-usb/)
 
 # Validator Update Script
+
 `vaildator_update.py` is a simple Python script to update the execution and consensus client of your choice. 
 
 Supports: Geth, Besu, Nethermind, Teku, Nimbus, Lighthouse, and Prysm.
@@ -37,6 +39,7 @@ Supports: Geth, Besu, Nethermind, Teku, Nimbus, Lighthouse, and Prysm.
 `python3 validator-install/validator_update.py`  
 
 # Validator Install Script
+
 The `validator_install.py` script performs the following tasks:
 
 1) Choose Ethereum network (mainnet, goerli, sepolia).
@@ -52,15 +55,32 @@ The `validator_install.py` script performs the following tasks:
 
 **To run the script, use these commands:**
 
-`sudo apt-get update`
+1. Make sure you have Python 3.6 or higher installed
 
-`sudo apt-get install git`
+2. Install git, if not already installed
 
-`pip install requests`
+```
+sudo apt-get update
+sudo apt-get install git
+```
 
-`git clone https://github.com/accidental-green/validator-install.git`
+3. Clone the repository
 
-`python3 validator-install/validator_install_multi.py`  
+```
+git clone https://github.com/accidental-green/validator-install.git
+```
+
+4. Install dependencies
+
+```
+pip install -r requirements.txt
+```
+
+5. Run the script
+
+```
+python3 validator-install/validator_install_multi.py
+```
 
 <br />  
 
