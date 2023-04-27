@@ -189,8 +189,9 @@ if eth_exec_client == 'nethermind':
     os.remove(temp_path)
 
     nethermind_version = os.path.splitext(zip_filename)[0]
+    nethermind_version = nethermind_version.split("-")[-4]
 
-    print(f'\nSuccessfully installed {nethermind_version}')
+    print(f'\nSuccessfully installed Nethermind v{nethermind_version}')
 
 ############ TEKU ##################
 if consensus_client == 'teku':
@@ -374,22 +375,22 @@ if eth_exec_client == 'geth':
     geth_version = subprocess.run(["geth", "--version"], stdout=subprocess.PIPE).stdout
     if geth_version is not None:
         geth_version = geth_version.decode()
-        geth_version = geth_version.split(" ")[-1]
+        geth_version = (geth_version.split(" ")[-1]).split("-")[-3]
     else:
         geth_version = ""
-    print(f'\nGeth Version: {geth_version}')
+    print(f'\nGeth Version: v{geth_version}\n')
 
 # Besu Print
 if eth_exec_client == 'besu':
-    print(f'\nBesu Version: {besu_version}\n')
+    print(f'\nBesu Version: v{besu_version}\n')
 
 # Nethermind Print
 if eth_exec_client == 'nethermind':
-    print(f'\nNethermind Version: {nethermind_version}\n')
+    print(f'\nNethermind Version: v{nethermind_version}\n')
 
 # Teku Print
 if consensus_client == 'teku':
-    print(f"Teku Version: {latest_version}\n")
+    print(f"Teku Version: v{latest_version}\n")
 
 # Prysm Print
 if consensus_client == 'prysm':
@@ -417,7 +418,7 @@ if consensus_client == 'lighthouse':
     lighthouse_version = subprocess.run(["lighthouse", "-V"], stdout=subprocess.PIPE).stdout
     if lighthouse_version is not None:
         lighthouse_version = lighthouse_version.decode()
-        lighthouse_version = lighthouse_version.split(" ")[-1]
+        lighthouse_version = (lighthouse_version.split(" ")[-1]).split("-")[-2]
     else:
         lighthouse_version = ""
-    print(f'Lighthouse Version: {lighthouse_version}')
+    print(f'Lighthouse Version: {lighthouse_version}\n')
