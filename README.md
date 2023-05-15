@@ -57,13 +57,20 @@ Once you make the selections and click "Install" it will perform the following t
 
 
 \
-You can open the journals for viewing, then start the validator with a single click!
+It's best to open the journals before starting the services, so you can see everything start up together.
 
-The services should start, find peers, and eventually begin syncing. If you notice any errors (red/yellow), visit [EthStaker Discord](https://discord.com/invite/ucsTcA2wTq) for help.
+The "Journals" button will open a new window for each relavent services (execution, beacon, validator, MEV). The journalctl command requires admin privileges, so you will need to enter your password in each new pop-up terminal window.
+
+Once the journals are ready, click "Start Validators".
 
 **Once the journals are opened and services started, it should look something like this:**
 
 ![Screenshot from 2023-05-14 23-57-29](https://github.com/accidental-green/validator-install/assets/72235883/cf12f61d-5dd7-4758-b127-2e1536c0dedb)
+
+
+
+
+The services should start, find peers, and eventually begin syncing. If you notice any errors (red/yellow), visit [EthStaker Discord](https://discord.com/invite/ucsTcA2wTq) for help.
 
 \
 **Disclaimer:** This script is for testing purposes only. Do not use on mainnet Validators.
