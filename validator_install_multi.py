@@ -3,25 +3,145 @@ import requests
 import re
 import fnmatch
 import json
+import random
 import tarfile
 import shutil
 import subprocess
+import sys
 import tempfile
 import urllib.request
 import zipfile
+from pathlib import Path
+import tkinter as tk
+from tkinter import font
+from tkinter import *
+
+
+def open_menu(event):
+    event.widget.tk.call('tk::MenuInvoke', event.widget._nametowidget(event.widget.cget("menu")), 0)
+
+def submit():
+    global network_var, execution_var, consensus_var, mev_var, eth_address_entry
+
+    eth_network = network_var.get()
+    execution_client = execution_var.get()
+    consensus_client = consensus_var.get()
+    mev_on_off = mev_var.get()
+    eth_address = eth_address_entry.get()
+
+    root.destroy()
+
+    return eth_network, execution_client, consensus_client, mev_on_off, eth_address
+
+root = tk.Tk()
+root.title("Ethereum Validator Installer")
+root.configure(background="#282C34")
+
+network_var = tk.StringVar()
+execution_var = tk.StringVar()
+consensus_var = tk.StringVar()
+mev_var = tk.StringVar()
+
+# Set font size
+label_font = font.nametofont("TkDefaultFont").copy()
+label_font.config(size=20)
+entry_font = font.nametofont("TkDefaultFont").copy()
+entry_font.config(size=18)
+
+# Ethereum network selection
+network_label = tk.Label(root, text="Choose Ethereum network:", bg="#282C34", fg="#ABB2BF", font=label_font, anchor='e')
+network_label.grid(column=0, row=0, padx=30, pady=30, sticky='e')
+
+networks = ('Mainnet', 'Goerli', 'Sepolia')
+network_menu = tk.OptionMenu(root, network_var, *networks)
+network_menu.config(bg="#4CAF50", fg="#FFFFFF", activebackground="#8BC34A", activeforeground="#FFFFFF", font=entry_font, takefocus=True)
+network_menu["menu"].config(bg="#4CAF50", fg="#FFFFFF", activebackground="#8BC34A", activeforeground="#FFFFFF", font=entry_font)
+network_menu.grid(column=1, row=0, padx=30, pady=30, ipadx=40, ipady=10)
+network_menu.bind('<space>', open_menu)
+
+# Execution client selection
+execution_label = tk.Label(root, text="Choose Execution Client:", bg="#282C34", fg="#ABB2BF", font=label_font, anchor='e')
+execution_label.grid(column=0, row=1, padx=30, pady=30, sticky='e')
+
+execution_clients = ('Nethermind', 'Besu', 'Geth')
+execution_menu = tk.OptionMenu(root, execution_var, *execution_clients)
+execution_menu.config(bg="#2196F3", fg="#FFFFFF", activebackground="#64B5F6", activeforeground="#FFFFFF", font=entry_font, takefocus=True)
+execution_menu["menu"].config(bg="#2196F3", fg="#FFFFFF", activebackground="#64B5F6", activeforeground="#FFFFFF", font=entry_font)
+execution_menu.grid(column=1, row=1, padx=30, pady=30, ipadx=40, ipady=10)
+execution_menu.bind('<space>', open_menu)
+
+# Consensus client selection
+consensus_label = tk.Label(root, text="Choose Consensus Client:", bg="#282C34", fg="#ABB2BF", font=label_font, anchor='e')
+consensus_label.grid(column=0, row=2, padx=30, pady=30, sticky='e')
+
+consensus_clients = ('Nimbus', 'Teku', 'Lighthouse', 'Prysm')
+consensus_menu = tk.OptionMenu(root, consensus_var, *consensus_clients)
+consensus_menu.config(bg="#FF9800", fg="#FFFFFF", activebackground="#FFA726", activeforeground="#FFFFFF", font=entry_font, takefocus=True)
+consensus_menu["menu"].config(bg="#FF9800", fg="#FFFFFF", activebackground="#FFA726", activeforeground="#FFFFFF", font=entry_font)
+consensus_menu.grid(column=1, row=2, padx=30, pady=30, ipadx=40, ipady=10)
+consensus_menu.bind('<space>', open_menu)
+
+# MEV Boost selection
+mev_label = tk.Label(root, text="MEV Boost (On/Off):", bg="#282C34", fg="#ABB2BF", font=label_font, anchor='e')
+mev_label.grid(column=0, row=3, padx=30, pady=30, sticky='e')
+
+mev_options = ('On', 'Off')
+mev_menu = tk.OptionMenu(root, mev_var, *mev_options)
+mev_menu.config(bg="#9C27B0", fg="#FFFFFF", activebackground="#BA68C8", activeforeground="#FFFFFF", font=entry_font, takefocus=True)
+mev_menu["menu"].config(bg="#9C27B0", fg="#FFFFFF", activebackground="#BA68C8", activeforeground="#FFFFFF", font=entry_font)
+mev_menu.grid(column=1, row=3, padx=30, pady=30, ipadx=40, ipady=10)
+mev_menu.bind('<space>', open_menu)
+
+# Ethereum address input
+eth_address_label = tk.Label(root, text="Ethereum address for tips (optional):", bg="#282C34", fg="#ABB2BF", font=label_font, anchor='e')
+eth_address_label.grid(column=0, row=4, padx=30, pady=30, sticky='e')
+
+eth_address_entry = tk.Entry(root, font=entry_font, takefocus=True)
+eth_address_entry.grid(column=1, row=4, padx=30, pady=30, ipadx=40, ipady=10)
+
+# Create the note label
+note_label = tk.Label(root, text="Note: Installation occurs in the terminal", bg="#282C34", fg="#ABB2BF", font=label_font, anchor='w')
+note_label.grid(column=0, row=5, padx=30, pady=60, sticky='w')
+
+# Submit button
+submit_button = tk.Button(root, text="Install", command=lambda: setattr(root, "saved_data", submit()), bg="#282C34", fg="#ABB2BF", activebackground="#61AFEF", activeforeground="#282C34", font=label_font, takefocus=True)
+submit_button.grid(column=1, row=5, padx=30, pady=60)
+
+root.saved_data = submit
+
+root.mainloop()
+
+# Define User Input Variables
+eth_network = root.saved_data[0]
+execution_client = root.saved_data[1]
+consensus_client = root.saved_data[2]
+mev_on_off = root.saved_data[3].lower()
+eth_address = root.saved_data[4]
+checkpoint_sync = "On"  # Assume Checkpoint Sync is always set to "On"
+
+# Print User Input Variables
+print("\n##### User Selected Inputs #####")
+print(f"Ethereum Network: {eth_network}")
+print(f"Execution Client: {execution_client}")
+print(f"Consensus Client: {consensus_client}")
+print(f"Checkpoint Sync: {checkpoint_sync}")
+print(f"MEV Boost: {mev_on_off}")
+print(f"Ethereum Address: {eth_address}\n")
 
 # Change to the home folder
 os.chdir(os.path.expanduser("~"))
 
-# Prompt User to select a network
+print("\n##### Validating User Inputs #####")
+
+# Validator Network from User input
 def is_valid_network(network):
     valid_networks = ['MAINNET', 'GOERLI', 'SEPOLIA']
     return network in valid_networks
 
 while True:
-    eth_network = input("\nSelect the network you would like to use \n(mainnet, goerli, sepolia): ").upper()
+    eth_network = eth_network.upper()
     if is_valid_network(eth_network):
-        print(f"Selected network: {eth_network}")
+        print(f"Ethereum network: {eth_network}")
         break
     else:
         print("Invalid network. Please try again.")
@@ -29,31 +149,31 @@ while True:
 eth_network = eth_network.lower()
 eth_network_cap = eth_network.capitalize()
 
-# Prompt User to select an Ethereum execution client
+# Validate execution_client from user input
 def is_valid_client(client):
     valid_exec_clients = ['GETH', 'BESU', 'NETHERMIND']
     return client in valid_exec_clients
 
 while True:
-    eth_exec_client = input("\nSelect the Ethereum execution client you would like to use \n(geth, besu, nethermind): ").upper()
-    if is_valid_client(eth_exec_client):
-        print(f"Selected client: {eth_exec_client}")
+    execution_client = execution_client.upper()
+    if is_valid_client(execution_client):
+        print(f"Execution client: {execution_client}")
         break
     else:
         print("Invalid client. Please try again.")
 
-eth_exec_client = eth_exec_client.lower()
-eth_exec_client_cap = eth_exec_client.capitalize()
+execution_client = execution_client.lower()
+execution_client_cap = execution_client.capitalize()
 
-# Prompt User to select a consensus client
+# Validate consensus client from user
 def is_valid_consensus_client(client):
     valid_consensus_clients = ['LIGHTHOUSE', 'TEKU', 'PRYSM', 'NIMBUS']
     return client in valid_consensus_clients
 
 while True:
-    consensus_client = input("\nSelect the consensus client you would like to use \n(lighthouse, teku, prysm, nimbus): ").upper()
+    consensus_client = consensus_client.upper()
     if is_valid_consensus_client(consensus_client):
-        print(f"Selected client: {consensus_client}")
+        print(f"Consensus client: {consensus_client}")
         break
     else:
         print("Invalid client. Please try again.")
@@ -61,100 +181,120 @@ while True:
 consensus_client = consensus_client.lower()
 consensus_client_cap = consensus_client.capitalize()
 
-# Prompt User for validator tips address (or skip)
+# Validate Ethereum Address from user
 def is_valid_eth_address(address):
     pattern = re.compile("^0x[a-fA-F0-9]{40}$")
     return bool(pattern.match(address))
 
 while True:
-    user_choice = input("\nWould you like to enter a Fee Recipient Address? (yes/no): ").lower()
-    if user_choice == 'yes':
-        fee_address = input("\n----------------------------------------\n---Set ETH address for Validator tips--- \n\nNote: Type 'skip' to set address later\n\nEnter Ethereum address you control: ")
-        if fee_address.lower() == "skip":
-            fee_address = "EMPTY"
-            print("Skipping Ethereum address input. You can set it later.")
-            break
-        elif is_valid_eth_address(fee_address):
-            print("Valid Ethereum address")
-            break
-        else:
-            print("Invalid Ethereum address. Please try again.")
-    elif user_choice == 'no':
+    user_address = eth_address.lower()
+    fee_address = eth_address
+    if fee_address.lower() == "":
         fee_address = "EMPTY"
         print("Skipping Ethereum address input. You can set it later.")
         break
+    elif is_valid_eth_address(fee_address):
+        print("Valid Ethereum address")
+        break
     else:
-        print("Invalid input. Please enter 'yes' or 'no'.")
+        print("ERROR: Invalid Ethereum address. Exiting Install. Please try again.")
+        sys.exit()
 
-# Prompt user for checkpoint sync (or skip)
-if consensus_client in ['lighthouse', 'teku', 'prysm']:
-    def prompt_checkpoint_sync_url():
-        mainnet_sync_urls = [
-            ("No CheckpointSyncURL (skip)", None),
-            ("ETHSTAKER", "https://beaconstate.ethstaker.cc"),
-            ("BEACONCHA.IN", "https://sync-mainnet.beaconcha.in"),
-            ("ATTESTANT", "https://mainnet-checkpoint-sync.attestant.io"),
-            ("SIGMA PRIME", "https://mainnet.checkpoint.sigp.io"),
-        ]
+def get_random_sync_url(sync_urls):
+    selected_sync_url = random.choice(sync_urls)
+    return selected_sync_url[1]
 
-        goerli_sync_urls = [
-            ("No CheckpointSyncURL (skip)", None),
-            ("ETHSTAKER", "https://goerli.beaconstate.ethstaker.cc/"),
-            ("BEACONSTATE", "https://goerli.beaconstate.info/"),
-            ("EF DevOps", "https://checkpoint-sync.goerli.ethpandaops.io/"),
-            ("LodeStart", "https://beaconstate-goerli.chainsafe.io/"),
-        ]
+if checkpoint_sync.lower() == "on" and consensus_client in ['lighthouse', 'teku', 'prysm']:
+    mainnet_sync_urls = [
+        ("ETHSTAKER", "https://beaconstate.ethstaker.cc"),
+        ("BEACONCHA.IN", "https://sync-mainnet.beaconcha.in"),
+        ("ATTESTANT", "https://mainnet-checkpoint-sync.attestant.io"),
+        ("SIGMA PRIME", "https://mainnet.checkpoint.sigp.io"),
+    ]
 
-        sepolia_sync_urls = [
-            ("No CheckpointSyncURL (skip)", None),
-            ("Beaconstate", "https://sepolia.beaconstate.info/"),
-            ("LodeStart", "https://beaconstate-sepolia.chainsafe.io/"),
-        ]
+    goerli_sync_urls = [
+        ("ETHSTAKER", "https://goerli.beaconstate.ethstaker.cc/"),
+        ("BEACONSTATE", "https://goerli.beaconstate.info/"),
+        ("EF DevOps", "https://checkpoint-sync.goerli.ethpandaops.io/"),
+        ("LodeStart", "https://beaconstate-goerli.chainsafe.io/"),
+    ]
 
-        sync_urls = mainnet_sync_urls
-        if eth_network == "goerli":
-            sync_urls = goerli_sync_urls
-        elif eth_network == "sepolia":
-            sync_urls = sepolia_sync_urls
+    sepolia_sync_urls = [
+        ("Beaconstate", "https://sepolia.beaconstate.info/"),
+        ("LodeStart", "https://beaconstate-sepolia.chainsafe.io/"),
+    ]
 
-        while True:
-            print("\n-----------------------------\n-------CHECKPOINT SYNC-------\nWould you like to enable Checkpoint Sync? (fast sync)\n\nPlease select a CheckpointSyncURL:\n")
-            for idx, (display_text, url) in enumerate(sync_urls, start=1):
-                print(f"{idx}. {display_text} - {url if url else ''}")
+    if eth_network == "mainnet":
+        checkpoint_sync_url = get_random_sync_url(mainnet_sync_urls)
+    elif eth_network == "goerli":
+        checkpoint_sync_url = get_random_sync_url(goerli_sync_urls)
+    elif eth_network == "sepolia":
+        checkpoint_sync_url = get_random_sync_url(sepolia_sync_urls)
+else:
+    checkpoint_sync_url = None
 
-            user_choice = input("\nNote: You can also set your own CheckpointSyncURL after installation.\n\nEnter the number of the desired option (1-5): ")
+print("Checkpoint Sync URL:", checkpoint_sync_url)
 
-            if user_choice.isdigit() and 1 <= int(user_choice) <= len(sync_urls):
-                display_text, selected_url = sync_urls[int(user_choice) - 1]
-                print(f"Selected CheckpointSyncURL: {display_text} - {selected_url if selected_url else ''}")
-                return selected_url
-            else:
-                print("Invalid choice. Please try again.")
-
-    sync_url = prompt_checkpoint_sync_url()
+sync_url = checkpoint_sync_url
 
 if 'sync_url' not in locals() or sync_url is None:
     sync_url = None
 
+# User names
+execution_user = None
+beacon_user = None
+validator_user = None
 
-def prompt_firewall_settings():
-    message = (
-        "\n################################\n\nFIREWALL SETTINGS\n\n"
-        "Port 22 is used for remote logins. If you are staking from home, it is recommended to disable port 22.\n\n"
-        "Would you like to disable port 22 (yes/no)? "
-    )
-    while True:
-        user_input = input(message).lower()
-        if user_input == "yes":
-            return "disabled"
-        elif user_input == "no":
-            return "enabled"
-        else:
-            print("Invalid input. Please enter 'yes' or 'no'.")
+if execution_client == 'geth':
+    execution_user = 'geth'
+elif execution_client == 'nethermind':
+    execution_user = 'nethermind'
+elif execution_client == 'besu':
+    execution_user = 'besu'
 
-if __name__ == "__main__":
-    port22_status = prompt_firewall_settings()
-    print(f"Port 22 is currently {port22_status}.")
+if consensus_client == 'nimbus':
+    beacon_user = 'nimbus'
+    validator_user = "nimbus"
+elif consensus_client == 'teku':
+    beacon_user = 'teku'
+    validator_user = "teku"
+elif consensus_client == 'prysm':
+    beacon_user = 'prysmbeacon'
+    validator_user = 'prysmvalidator'
+elif consensus_client == 'lighthouse':
+    beacon_user = 'lighthousebeacon'
+    validator_user = 'lighthousevalidator'
+
+# MEV Relay Data
+mainnet_relay_options = [
+    {'name': 'Aestus', 'url': 'https://0xa15b52576bcbf1072f4a011c0f99f9fb6c66f3e1ff321f11f461d15e31b1cb359caa092c71bbded0bae5b5ea401aab7e@aestus.live'},
+    {'name': 'Agnostic Gnosis', 'url': 'https://0xa7ab7a996c8584251c8f925da3170bdfd6ebc75d50f5ddc4050a6fdc77f2a3b5fce2cc750d0865e05d7228af97d69561@agnostic-relay.net'},
+    {'name': 'Blocknative', 'url': 'https://0x9000009807ed12c1f08bf4e81c6da3ba8e3fc3d953898ce0102433094e5f22f21102ec057841fcb81978ed1ea0fa8246@builder-relay-mainnet.blocknative.com'},
+    {'name': 'bloXroute Ethical', 'url': 'https://0xad0a8bb54565c2211cee576363f3a347089d2f07cf72679d16911d740262694cadb62d7fd7483f27afd714ca0f1b9118@bloxroute.ethical.blxrbdn.com'},
+    {'name': 'bloXroute Max Profit', 'url': 'https://0x8b5d2e73e2a3a55c6c87b8b6eb92e0149a125c852751db1422fa951e42a09b82c142c3ea98d0d9930b056a3bc9896b8f@bloxroute.max-profit.blxrbdn.com'},
+    {'name': 'bloXroute Regulated', 'url': 'https://0xb0b07cd0abef743db4260b0ed50619cf6ad4d82064cb4fbec9d3ec530f7c5e6793d9f286c4e082c0244ffb9f2658fe88@bloxroute.regulated.blxrbdn.com'},
+    {'name': 'Eden Network', 'url': 'https://0xb3ee7afcf27f1f1259ac1787876318c6584ee353097a50ed84f51a1f21a323b3736f271a895c7ce918c038e4265918be@relay.edennetwork.io'},
+    {'name': 'Flashbots', 'url': 'https://0xac6e77dfe25ecd6110b8e780608cce0dab71fdd5ebea22a16c0205200f2f8e2e3ad3b71d3499c54ad14d6c21b41a37ae@boost-relay.flashbots.net'},
+    {'name': 'Manifold', 'url': 'https://0x98650451ba02064f7b000f5768cf0cf4d4e492317d82871bdc87ef841a0743f69f0f1eea11168503240ac35d101c9135@mainnet-relay.securerpc.com'},
+    {'name': 'Ultra Sound', 'url': 'https://0xa1559ace749633b997cb3fdacffb890aeebdb0f5a3b6aaa7eeeaf1a38af0a8fe88b9e4b1f61f236d2e64d95733327a62@relay.ultrasound.money'}
+]
+
+mainnet_relay_names = [option['name'] for option in mainnet_relay_options]
+mainnet_relay_names_sentence = ', '.join(mainnet_relay_names)
+
+goerli_relay_options = [
+    {'name': 'Flashbots', 'url': 'https://0xafa4c6985aa049fb79dd37010438cfebeb0f2bd42b115b89dd678dab0670c1de38da0c4e9138c9290a398ecd9a0b3110@builder-relay-goerli.flashbots.net'},
+    {'name': 'bloXroute', 'url': 'https://0x821f2a65afb70e7f2e820a925a9b4c80a159620582c1766b1b09729fec178b11ea22abb3a51f07b288be815a1a2ff516@bloxroute.max-profit.builder.goerli.blxrbdn.com'},
+    {'name': 'Blocknative', 'url': 'https://0x8f7b17a74569b7a57e9bdafd2e159380759f5dc3ccbd4bf600414147e8c4e1dc6ebada83c0139ac15850eb6c975e82d0@builder-relay-goerli.blocknative.com'},
+    {'name': 'Eden Network', 'url': 'https://0xb1d229d9c21298a87846c7022ebeef277dfc321fe674fa45312e20b5b6c400bfde9383f801848d7837ed5fc449083a12@relay-goerli.edennetwork.io'},
+    {'name': 'Manifold', 'url': 'https://0x8a72a5ec3e2909fff931c8b42c9e0e6c6e660ac48a98016777fc63a73316b3ffb5c622495106277f8dbcc17a06e92ca3@goerli-relay.securerpc.com/'},
+    {'name': 'Aestus', 'url': 'https://0xab78bf8c781c58078c3beb5710c57940874dd96aef2835e7742c866b4c7c0406754376c2c8285a36c630346aa5c5f833@goerli.aestus.live'},
+    {'name': 'Ultra Sound', 'url': 'https://0xb1559beef7b5ba3127485bbbb090362d9f497ba64e177ee2c8e7db74746306efad687f2cf8574e38d70067d40ef136dc@relay-stag.ultrasound.money'}
+]
+
+sepolia_relay_options = [
+    {'name': 'Flashbots', 'url': 'https://0x845bd072b7cd566f02faeb0a4033ce9399e42839ced64e8b2adcfc859ed1e8e1a5a293336a49feac6d9a5edb779be53a@boost-relay-sepolia.flashbots.net'}
+]
 
 # Install ufw
 subprocess.run(['sudo', 'apt', 'install', 'ufw'])
@@ -168,18 +308,31 @@ subprocess.run(['sudo', 'ufw', 'allow', '6673/tcp'])
 subprocess.run(['sudo', 'ufw', 'allow', '30303'])
 subprocess.run(['sudo', 'ufw', 'allow', '9000'])
 
-# Port 22
-if port22_status == "disabled":
-    subprocess.run(['sudo', 'ufw', 'deny', '22/tcp'])
-    print("Port 22 has been disabled.")
-else:
-    print("Port 22 remains enabled.")
-
 # Enable and check status
 subprocess.run(['sudo', 'ufw', 'enable'])
 subprocess.run(['sudo', 'ufw', 'status', 'numbered'])
 
-# Create directory
+# Install Go & MEV
+if  mev_on_off == "on":
+    # Step 1: Install Go 1.18+
+    os.system("cd $HOME")
+    os.system("wget -O go.tar.gz https://go.dev/dl/go1.19.6.linux-amd64.tar.gz")
+    os.system("sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go.tar.gz")
+    os.system("rm go.tar.gz")
+    os.system('echo export PATH=$PATH:/usr/local/go/bin >> $HOME/.bashrc')
+    os.system("source $HOME/.bashrc")
+    os.system("go version")
+
+    # Step 2: Create mevboost service account
+    os.system("sudo useradd --no-create-home --shell /bin/false mevboost")
+
+    # Step 3: Install mevboost
+    os.system("sudo apt -y install build-essential")
+    os.system('CGO_CFLAGS="-O -D__BLST_PORTABLE__" go install github.com/flashbots/mev-boost@latest')
+    os.system("sudo cp $HOME/go/bin/mev-boost /usr/local/bin")
+    os.system("sudo chown mevboost:mevboost /usr/local/bin/mev-boost")
+
+# Create JWT directory
 subprocess.run(['sudo', 'mkdir', '-p', '/var/lib/jwtsecret'])
 
 # Generate random hex string and save to file
@@ -195,7 +348,7 @@ subprocess.run(['sudo', 'apt', '-y', 'dist-upgrade'])
 subprocess.run(['sudo', 'apt', '-y', 'autoremove'])
 
 ############ GETH ##################
-if eth_exec_client == 'geth':
+if execution_client == 'geth':
     # Create User and directories
     subprocess.run(['sudo', 'useradd', '--no-create-home', '--shell', '/bin/false', 'geth'])
     subprocess.run(['sudo', 'mkdir', '-p', '/var/lib/geth'])
@@ -242,7 +395,7 @@ if eth_exec_client == 'geth':
         print('Error: could not find download URL.')
 
 ############ BESU ##################
-if eth_exec_client == 'besu':
+if execution_client == 'besu':
 	# Create User and directories
 	subprocess.run(['sudo', 'useradd', '--no-create-home', '--shell', '/bin/false', 'besu'])
 	subprocess.run(['sudo', 'mkdir', '-p', '/var/lib/besu'])
@@ -277,7 +430,7 @@ if eth_exec_client == 'besu':
 	subprocess.run(["sudo", "apt", "install", "-y", "libjemalloc-dev"])
 
 ############ NETHERMIND ##################
-if eth_exec_client == 'nethermind':
+if execution_client == 'nethermind':
     # Create User and directories
     subprocess.run(["sudo", "useradd", "--no-create-home", "--shell", "/bin/false", "nethermind"])
     subprocess.run(["sudo", "mkdir", "-p", "/var/lib/nethermind"])
@@ -421,7 +574,6 @@ if consensus_client == 'prysm':
         print("Error: Could not find the latest release links.")
 
 ################ NIMBUS ##################
-
 if consensus_client == 'nimbus':
     # Create /var/lib/nimbus directory
     subprocess.run(['sudo', 'mkdir', '-p', '/var/lib/nimbus'])
@@ -541,101 +693,106 @@ if consensus_client == 'lighthouse':
     print(f"Download URL: {download_url}")
 
 ###### GETH SERVICE FILE #############
+if execution_client == 'geth':
+    geth_service_file_lines = [
+        '[Unit]',
+        'Description=Geth Execution Client (Mainnet)',
+        'Wants=network.target',
+        'After=network.target',
+        '',
+        '[Service]',
+        'User=geth',
+        'Group=geth',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'TimeoutStopSec=600',
+        'ExecStart=/usr/local/bin/geth \\',
+        f'    --{eth_network} \\',
+        '    --datadir /var/lib/geth \\',
+        '    --authrpc.jwtsecret /var/lib/jwtsecret/jwt.hex',
+        '',
+        '[Install]',
+        'WantedBy=default.target',
+    ]
 
-if eth_exec_client == 'geth':
-	geth_service_file = f'''[Unit]
-	Description=Geth Execution Client (Mainnet)
-	After=network.target
-	Wants=network.target
+    geth_service_file = '\n'.join(geth_service_file_lines)
 
-	[Service]
-	User=geth
-	Group=geth
-	Type=simple
-	Restart=always
-	RestartSec=5
-	TimeoutStopSec=600
-	ExecStart=/usr/local/bin/geth \\
-	  --{eth_network} \\
-	  --datadir /var/lib/geth \\
-	  --authrpc.jwtsecret /var/lib/jwtsecret/jwt.hex
+    geth_temp_file = 'geth_temp.service'
+    geth_service_file_path = '/etc/systemd/system/geth.service'
 
-	[Install]
-	WantedBy=default.target
-	'''
+    with open(geth_temp_file, 'w') as f:
+        f.write(geth_service_file)
 
-	geth_temp_file = 'geth_temp.service'
-	geth_service_file_path = '/etc/systemd/system/geth.service'
-
-	with open(geth_temp_file, 'w') as f:
-	    f.write(geth_service_file)
-
-	os.system(f'sudo cp {geth_temp_file} {geth_service_file_path}')
-
-	os.remove(geth_temp_file)
+    os.system(f'sudo cp {geth_temp_file} {geth_service_file_path}')
+    os.remove(geth_temp_file)
 
 ############ BESU SERVICE FILE ###############
+if execution_client == 'besu':
+    besu_service_file_lines = [
+        '[Unit]',
+        'Description=Besu Execution Client (Mainnet)',
+        'Wants=network-online.target',
+        'After=network-online.target',
+        '',
+        '[Service]',
+        'User=besu',
+        'Group=besu',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'Environment="JAVA_OPTS=-Xmx5g"',
+        'ExecStart=/usr/local/bin/besu/bin/besu \\',
+        f'    --network={eth_network} \\',
+        '    --sync-mode=X_SNAP \\',
+        '    --data-path=/var/lib/besu \\',
+        '    --data-storage-format=BONSAI \\',
+        '    --engine-jwt-secret=/var/lib/jwtsecret/jwt.hex',
+        '',
+        '[Install]',
+        'WantedBy=multi-user.target',
+    ]
 
-if eth_exec_client == 'besu':
-	besu_service_file = f'''[Unit]
-	Description=Besu Execution Client (Mainnet)
-	Wants=network-online.target
-	After=network-online.target
+    besu_service_file = '\n'.join(besu_service_file_lines)
 
-	[Service]
-	User=besu
-	Group=besu
-	Type=simple
-	Restart=always
-	RestartSec=5
-	Environment="JAVA_OPTS=-Xmx5g"
-	ExecStart=/usr/local/bin/besu/bin/besu \\
-	  --network={eth_network} \\
-	  --sync-mode=X_SNAP \\
-	  --data-path=/var/lib/besu \\
-	  --data-storage-format=BONSAI \\
-	  --engine-jwt-secret=/var/lib/jwtsecret/jwt.hex
-	  
-	[Install]
-	WantedBy=multi-user.target
-	'''
+    besu_temp_file = 'besu_temp.service'
+    besu_service_file_path = '/etc/systemd/system/besu.service'
 
-	besu_temp_file = 'besu_temp.service'
-	besu_service_file_path = '/etc/systemd/system/besu.service'
-	
-	with open(besu_temp_file, 'w') as f:
-	    f.write(besu_service_file)
+    with open(besu_temp_file, 'w') as f:
+        f.write(besu_service_file)
 
-	os.system(f'sudo cp {besu_temp_file} {besu_service_file_path}')
-	os.remove(besu_temp_file)
+    os.system(f'sudo cp {besu_temp_file} {besu_service_file_path}')
+    os.remove(besu_temp_file)
 
 ####### NETHERMIND SERVICE FILE ###########
+if execution_client == 'nethermind':
+    nethermind_service_file_lines = [
+        '[Unit]',
+        'Description=Nethermind Execution Client (Mainnet)',
+        'Wants=network.target',
+        'After=network.target',
+        '',
+        '[Service]',
+        'User=nethermind',
+        'Group=nethermind',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'WorkingDirectory=/var/lib/nethermind',
+        'Environment="DOTNET_BUNDLE_EXTRACT_BASE_DIR=/var/lib/nethermind"',
+        'ExecStart=/usr/local/bin/nethermind/Nethermind.Runner \\',
+        f'    --config {eth_network} \\',
+        '    --datadir /var/lib/nethermind \\',
+        '    --Sync.SnapSync true \\',
+        '    --Sync.AncientBodiesBarrier 11052984 \\',
+        '    --Sync.AncientReceiptsBarrier 11052984 \\',
+        '    --JsonRpc.JwtSecretFile /var/lib/jwtsecret/jwt.hex',
+        '',
+        '[Install]',
+        'WantedBy=default.target',
+    ]
 
-if eth_exec_client == 'nethermind':
-    nethermind_service_file = f'''[Unit]
-    Description=Nethermind Execution Client (Mainnet)
-    After=network.target
-    Wants=network.target
-
-    [Service]
-    User=nethermind
-    Group=nethermind
-    Type=simple
-    Restart=always
-    RestartSec=5
-    WorkingDirectory=/var/lib/nethermind
-    Environment="DOTNET_BUNDLE_EXTRACT_BASE_DIR=/var/lib/nethermind"
-    ExecStart=/usr/local/bin/nethermind/Nethermind.Runner \\
-      --config {eth_network} \\
-      --datadir /var/lib/nethermind \\
-      --Sync.SnapSync true \\
-      --Sync.AncientBodiesBarrier 11052984 \\
-      --Sync.AncientReceiptsBarrier 11052984 \\
-      --JsonRpc.JwtSecretFile /var/lib/jwtsecret/jwt.hex
-
-    [Install]
-    WantedBy=default.target
-    '''
+    nethermind_service_file = '\n'.join(nethermind_service_file_lines)
 
     nethermind_temp_file = 'nethermind_temp.service'
     nethermind_service_file_path = '/etc/systemd/system/nethermind.service'
@@ -648,102 +805,82 @@ if eth_exec_client == 'nethermind':
     os.remove(nethermind_temp_file)
 
 ###### TEKU SERVICE FILE #######
-
 if consensus_client == 'teku':
-    teku_service_file_no_sync = f'''[Unit]
-    Description=Teku Consensus Client (Mainnet)
-    Wants=network-online.target
-    After=network-online.target
+    teku_service_file_lines = [
+        '[Unit]',
+        'Description=Teku Consensus Client (Mainnet)',
+        'Wants=network-online.target',
+        'After=network-online.target',
+        '',
+        '[Service]',
+        'User=teku',
+        'Group=teku',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'Environment="JAVA_OPTS=-Xmx5g"',
+        'Environment="TEKU_OPTS=-XX:-HeapDumpOnOutOfMemoryError"',
+        'ExecStart=/usr/local/bin/teku/bin/teku \\',
+        f'    --network={eth_network} \\',
+        '    --data-path=/var/lib/teku \\',
+        '    --validator-keys=/var/lib/teku/validator_keys:/var/lib/teku/validator_keys \\',
+        '    --ee-endpoint=http://127.0.0.1:8551 \\',
+        '    --ee-jwt-secret-file=/var/lib/jwtsecret/jwt.hex \\',
+        *([f'    --initial-state={sync_url} \\'] if sync_url is not None else []),
+        *([f'    --validators-builder-registration-default-enabled=true \\'] if mev_on_off == 'on' else []),
+        *([f'    --builder-endpoint=http://127.0.0.1:18550 \\'] if mev_on_off == 'on' else []),
+        f'    --validators-proposer-default-fee-recipient={fee_address}',
+        '',
+        '[Install]',
+        'WantedBy=multi-user.target',
+    ]
 
-    [Service]
-    User=teku
-    Group=teku
-    Type=simple
-    Restart=always
-    RestartSec=5
-    Environment="JAVA_OPTS=-Xmx5g"
-    Environment="TEKU_OPTS=-XX:-HeapDumpOnOutOfMemoryError"
-    ExecStart=/usr/local/bin/teku/bin/teku \\
-      --network={eth_network} \\
-      --data-path=/var/lib/teku \\
-      --validator-keys=/var/lib/teku/validator_keys:/var/lib/teku/validator_keys \\
-      --ee-endpoint=http://127.0.0.1:8551 \\
-      --ee-jwt-secret-file=/var/lib/jwtsecret/jwt.hex \\
-      --validators-proposer-default-fee-recipient={fee_address}
-
-    [Install]
-    WantedBy=multi-user.target
-    '''
-
-    teku_service_file = f'''[Unit]
-    Description=Teku Consensus Client (Mainnet)
-    Wants=network-online.target
-    After=network-online.target
-
-    [Service]
-    User=teku
-    Group=teku
-    Type=simple
-    Restart=always
-    RestartSec=5
-    Environment="JAVA_OPTS=-Xmx5g"
-    Environment="TEKU_OPTS=-XX:-HeapDumpOnOutOfMemoryError"
-    ExecStart=/usr/local/bin/teku/bin/teku \\
-      --network={eth_network} \\
-      --data-path=/var/lib/teku \\
-      --validator-keys=/var/lib/teku/validator_keys:/var/lib/teku/validator_keys \\
-      --ee-endpoint=http://127.0.0.1:8551 \\
-      --ee-jwt-secret-file=/var/lib/jwtsecret/jwt.hex \\
-      --validators-proposer-default-fee-recipient={fee_address} \\
-      --initial-state={sync_url}
-
-    [Install]
-    WantedBy=multi-user.target
-    '''
+    teku_service_file = '\n'.join(teku_service_file_lines)
 
     teku_temp_file = 'teku_temp.service'
     teku_service_file_path = '/etc/systemd/system/teku.service'
 
     with open(teku_temp_file, 'w') as f:
-        if sync_url is None:
-            f.write(teku_service_file_no_sync)
-        else:
-            f.write(teku_service_file)
+        f.write(teku_service_file)
 
     os.system(f'sudo cp {teku_temp_file} {teku_service_file_path}')
     os.remove(teku_temp_file)
 
 ########### NIMBUS SERVICE FILE #############
-
 if consensus_client == 'nimbus':
-    nimbus_service_file = f'''[Unit]
-    Description=Nimbus Consensus Client (Mainnet)
-    Wants=network-online.target
-    After=network-online.target
+    nimbus_service_file_lines = [
+        '[Unit]',
+        'Description=Nimbus Consensus Client (Mainnet)',
+        'Wants=network-online.target',
+        'After=network-online.target',
+        '',
+        '[Service]',
+        'User=nimbus',
+        'Group=nimbus',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'ExecStart=/usr/local/bin/nimbus_beacon_node \\',
+        f'    --network={eth_network} \\',
+        '    --data-dir=/var/lib/nimbus \\',
+        '    --web3-url=http://127.0.0.1:8551 \\',
+        '    --jwt-secret=/var/lib/jwtsecret/jwt.hex \\',
+        *([f'    --payload-builder=true \\'] if mev_on_off == 'on' else []),
+        *([f'    --payload-builder-url=http://127.0.0.1:18550 \\'] if mev_on_off == 'on' else []),
+        f'    --suggested-fee-recipient={fee_address}',
+        '',
+        '[Install]',
+        'WantedBy=multi-user.target',
+    ]
 
-    [Service]
-    User=nimbus
-    Group=nimbus
-    Type=simple
-    Restart=always
-    RestartSec=5
-    ExecStart=/usr/local/bin/nimbus_beacon_node \\
-      --network={eth_network} \\
-      --data-dir=/var/lib/nimbus \\
-      --web3-url=http://127.0.0.1:8551 \\
-      --jwt-secret=/var/lib/jwtsecret/jwt.hex \\
-      --suggested-fee-recipient={fee_address}
+    nimbus_service_file = '\n'.join(nimbus_service_file_lines)
 
-    [Install]
-    WantedBy=multi-user.target
-    '''
-
-    if sync_url is not None:
-        subprocess.run([
-            'sudo', '/usr/local/bin/nimbus_beacon_node', 'trustedNodeSync',
-            f'--network={eth_network}', '--data-dir=/var/lib/nimbus',
-            f'--trusted-node-url={sync_url}', '--backfill=false'
-        ])
+#    if sync_url is not None:
+#        subprocess.run([
+#            'sudo', '/usr/local/bin/nimbus_beacon_node', 'trustedNodeSync',
+#            f'--network={eth_network}', '--data-dir=/var/lib/nimbus',
+#            f'--trusted-node-url={sync_url}', '--backfill=false'
+#        ])
 
     nimbus_temp_file = 'nimbus_temp.service'
     nimbus_service_file_path = '/etc/systemd/system/nimbus.service'
@@ -753,187 +890,225 @@ if consensus_client == 'nimbus':
 
     os.system(f'sudo cp {nimbus_temp_file} {nimbus_service_file_path}')
     os.remove(nimbus_temp_file)
-   
+
 ########### PRYSM SERVICE FILE ##############
-
 if consensus_client == 'prysm':
-    prysm_beacon_service_file = f'''[Unit]
-Description=Prysm Consensus Client BN (Mainnet)
-Wants=network-online.target
-After=network-online.target
+    prysm_beacon_service_file_lines = [
+        '[Unit]',
+        'Description=Prysm Consensus Client BN (Mainnet)',
+        'Wants=network-online.target',
+        'After=network-online.target',
+        '',
+        '[Service]',
+        'User=prysmbeacon',
+        'Group=prysmbeacon',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'ExecStart=/usr/local/bin/beacon-chain \\',
+        f'    --{eth_network} \\',
+        '    --datadir=/var/lib/prysm/beacon \\',
+        '    --execution-endpoint=http://127.0.0.1:8551 \\',
+        '    --jwt-secret=/var/lib/jwtsecret/jwt.hex \\',
+        f'    --suggested-fee-recipient={fee_address} \\',
+        *([f'    --checkpoint-sync-url={sync_url} \\'] if sync_url is not None else []),
+        *([f'    --genesis-beacon-api-url={sync_url} \\'] if sync_url is not None else []),
+        *([f'    --http-mev-relay=http://127.0.0.1:18550 \\'] if mev_on_off == 'on' else []),
+        '    --accept-terms-of-use',
+        '',
+        '[Install]',
+        'WantedBy=multi-user.target',
+    ]
 
-[Service]
-User=prysmbeacon
-Group=prysmbeacon
-Type=simple
-Restart=always
-RestartSec=5
-ExecStart=/usr/local/bin/beacon-chain \\
-    --{eth_network} \\
-    --datadir=/var/lib/prysm/beacon \\
-    --execution-endpoint=http://127.0.0.1:8551 \\
-    --jwt-secret=/var/lib/jwtsecret/jwt.hex \\
-    --suggested-fee-recipient={fee_address} \\
-    --checkpoint-sync-url={sync_url} \\
-    --genesis-beacon-api-url={sync_url} \\
-    --accept-terms-of-use
+    prysm_beacon_service_file = '\n'.join(prysm_beacon_service_file_lines)
 
-[Install]
-WantedBy=multi-user.target
-'''
+    prysm_validator_service_file_lines = [
+        '[Unit]',
+        'Description=Prysm Consensus Client VC (Mainnet)',
+        'Wants=network-online.target',
+        'After=network-online.target',
+        '',
+        '[Service]',
+        'User=prysmvalidator',
+        'Group=prysmvalidator',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'ExecStart=/usr/local/bin/validator \\',
+        '    --datadir=/var/lib/prysm/validator \\',
+        '    --wallet-dir=/var/lib/prysm/validator \\',
+        '    --wallet-password-file=/var/lib/prysm/validator/password.txt \\',
+        f'    --suggested-fee-recipient={fee_address} \\',
+        *([f'    --enable-builder \\'] if mev_on_off == 'on' else []),
+        '    --accept-terms-of-use',
+        '',
+        '[Install]',
+        'WantedBy=multi-user.target',
+    ]
 
-    prysm_beacon_service_file_no_sync = f'''[Unit]
-Description=Prysm Consensus Client BN (Mainnet)
-Wants=network-online.target
-After=network-online.target
-
-[Service]
-User=prysmbeacon
-Group=prysmbeacon
-Type=simple
-Restart=always
-RestartSec=5
-ExecStart=/usr/local/bin/beacon-chain \\
-    --{eth_network} \\
-    --datadir=/var/lib/prysm/beacon \\
-    --execution-endpoint=http://127.0.0.1:8551 \\
-    --jwt-secret=/var/lib/jwtsecret/jwt.hex \\
-    --suggested-fee-recipient={fee_address} \\
-    --accept-terms-of-use
-
-[Install]
-WantedBy=multi-user.target
-'''
-
-    prysm_validator_service_file = f'''[Unit]
-Description=Prysm Consensus Client VC (Mainnet)
-Wants=network-online.target
-After=network-online.target
-   
-[Service]
-User=prysmvalidator
-Group=prysmvalidator
-Type=simple
-Restart=always
-RestartSec=5
-ExecStart=/usr/local/bin/validator \\
-    --datadir=/var/lib/prysm/validator \\
-    --wallet-dir=/var/lib/prysm/validator \\
-    --wallet-password-file=/var/lib/prysm/validator/password.txt \\
-    --suggested-fee-recipient={fee_address} \\
-    --accept-terms-of-use
-      
-[Install]
-WantedBy=multi-user.target
-'''
+    prysm_validator_service_file = '\n'.join(prysm_validator_service_file_lines)
 
     prysm_beacon_temp_file = 'prysm_beacon_temp.service'
-    prysm_validator_temp_file = 'prysm_validator_temp.service'
     prysm_beacon_service_file_path = '/etc/systemd/system/prysmbeacon.service'
+    prysm_validator_temp_file = 'prysm_validator_temp.service'
     prysm_validator_service_file_path = '/etc/systemd/system/prysmvalidator.service'
 
     with open(prysm_beacon_temp_file, 'w') as f:
-        if sync_url is None:
-            f.write(prysm_beacon_service_file_no_sync)
-        else:
-            f.write(prysm_beacon_service_file)
+        f.write(prysm_beacon_service_file)
 
     with open(prysm_validator_temp_file, 'w') as f:
         f.write(prysm_validator_service_file)
 
     os.system(f'sudo cp {prysm_beacon_temp_file} {prysm_beacon_service_file_path}')
-    os.system(f'sudo cp {prysm_validator_temp_file} {prysm_validator_service_file_path}')
     os.remove(prysm_beacon_temp_file)
+    os.system(f'sudo cp {prysm_validator_temp_file} {prysm_validator_service_file_path}')
     os.remove(prysm_validator_temp_file)
 
 ######## LIGHTHOUSE SERVICE FILES ###########
-
 if consensus_client == 'lighthouse':
-	lh_beacon_service_file = f'''[Unit]
-	Description=Lighthouse Consensus Client BN (Mainnet)
-	Wants=network-online.target
-	After=network-online.target
+# Beacon Service File
+    lh_beacon_service_file_lines = [
+        '[Unit]',
+        'Description=Lighthouse Consensus Client BN (Mainnet)',
+        'Wants=network-online.target',
+        'After=network-online.target',
+        '',
+        '[Service]',
+        'User=lighthousebeacon',
+        'Group=lighthousebeacon',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'ExecStart=/usr/local/bin/lighthouse bn \\',
+        f'    --network {eth_network} \\',
+        '    --datadir /var/lib/lighthouse \\',
+        '    --http \\',
+        '    --execution-endpoint http://127.0.0.1:8551 \\',
+        '    --execution-jwt /var/lib/jwtsecret/jwt.hex \\',
+        *([f'    --checkpoint-sync-url {sync_url} \\'] if sync_url is not None else []),
+        *([f'    --builder http://127.0.0.1:18550 \\'] if mev_on_off == 'on' else []),
+        '',
+        '[Install]',
+        'WantedBy=multi-user.target',
+    ]
 
-	[Service]
-	User=lighthousebeacon
-	Group=lighthousebeacon
-	Type=simple
-	Restart=always
-	RestartSec=5
-	ExecStart=/usr/local/bin/lighthouse bn \\
-	  --network {eth_network} \\
-	  --datadir /var/lib/lighthouse \\
-	  --http \\
-	  --execution-endpoint http://127.0.0.1:8551 \\
-	  --execution-jwt /var/lib/jwtsecret/jwt.hex \\
-	  --checkpoint-sync-url {sync_url}
+    lh_beacon_service_file = '\n'.join(lh_beacon_service_file_lines)
 
-	[Install]
-	WantedBy=multi-user.target
-	'''
+# Validator Service FIle
+    lh_validator_service_file_lines = [
+        '[Unit]',
+        'Description=Lighthouse Consensus Client VC (Mainnet)',
+        'Wants=network-online.target',
+        'After=network-online.target',
+        '',
+        '[Service]',
+        'User=lighthousevalidator',
+        'Group=lighthousevalidator',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'ExecStart=/usr/local/bin/lighthouse vc \\',
+        f'    --network {eth_network} \\',
+        '    --datadir /var/lib/lighthouse \\',
+        *([f'    --builder-proposals \\'] if mev_on_off == 'on' else []),
+        f'    --suggested-fee-recipient {fee_address}',
+        '',
+        '[Install]',
+        'WantedBy=multi-user.target',
+    ]
 
-if consensus_client == 'lighthouse':
-	lh_beacon_service_file_no_sync = f'''[Unit]
-	Description=Lighthouse Consensus Client BN (Mainnet)
-	Wants=network-online.target
-	After=network-online.target
+    lh_validator_service_file = '\n'.join(lh_validator_service_file_lines)
 
-	[Service]
-	User=lighthousebeacon
-	Group=lighthousebeacon
-	Type=simple
-	Restart=always
-	RestartSec=5
-	ExecStart=/usr/local/bin/lighthouse bn \\
-	  --network {eth_network} \\
-	  --datadir /var/lib/lighthouse \\
-	  --http \\
-	  --execution-endpoint http://127.0.0.1:8551 \\
-	  --execution-jwt /var/lib/jwtsecret/jwt.hex
+# Write Service files
+    lh_beacon_temp_file = 'lh_beacon_temp.service'
+    lh_validator_temp_file = 'lh_validator_temp.service'
+    lh_beacon_service_file_path = '/etc/systemd/system/lighthousebeacon.service'
+    lh_validator_service_file_path = '/etc/systemd/system/lighthousevalidator.service'
 
-	[Install]
-	WantedBy=multi-user.target
-	'''
+    with open(lh_beacon_temp_file, 'w') as f:
+	    f.write(lh_beacon_service_file)
 
-if consensus_client == 'lighthouse':
-	lh_validator_service_file = f'''[Unit]
-	Description=Lighthouse Consensus Client VC (Mainnet)
-	Wants=network-online.target
-	After=network-online.target
+    with open(lh_validator_temp_file, 'w') as f:
+	    f.write(lh_validator_service_file)
 
-	[Service]
-	User=lighthousevalidator
-	Group=lighthousevalidator
-	Type=simple
-	Restart=always
-	RestartSec=5
-	ExecStart=/usr/local/bin/lighthouse vc \\
-	  --network {eth_network} \\
-	  --datadir /var/lib/lighthouse \\
-	  --suggested-fee-recipient {fee_address}
+    os.system(f'sudo cp {lh_beacon_temp_file} {lh_beacon_service_file_path}')
+    os.system(f'sudo cp {lh_validator_temp_file} {lh_validator_service_file_path}')
+    os.remove(lh_beacon_temp_file)
+    os.remove(lh_validator_temp_file)
 
-	[Install]
-	WantedBy=multi-user.target
-	'''
+# MEV Service File
+if mev_on_off == 'on':
+    mev_boost_service_file_lines = [
+        '[Unit]',
+        'Description=mev-boost ethereum mainnet',
+        'Wants=network-online.target',
+        'After=network-online.target',
+        '',
+        '[Service]',
+        'User=mevboost',
+        'Group=mevboost',
+        'Type=simple',
+        'Restart=always',
+        'RestartSec=5',
+        'ExecStart=/usr/local/bin/mev-boost \\',
+        f'    -{eth_network} \\',
+        '    -min-bid 0.05 \\',
+        '    -relay-check \\',
+    ]
 
-	lh_beacon_temp_file = 'lh_beacon_temp.service'
-	lh_validator_temp_file = 'lh_validator_temp.service'
-	lh_beacon_service_file_path = '/etc/systemd/system/lighthousebeacon.service'
-	lh_validator_service_file_path = '/etc/systemd/system/lighthousevalidator.service'
+    # Add relay lines from goerli_relay_options
+    
+    if eth_network == 'mainnet':
+        for relay in mainnet_relay_options:
+            relay_line = f'    -relay {relay["url"]} \\'
+            mev_boost_service_file_lines.append(relay_line)
 
-	with open(lh_beacon_temp_file, 'w') as f:
-		if sync_url is None:
-			f.write(lh_beacon_service_file_no_sync)
-		else:
-			f.write(lh_beacon_service_file)
+        # Remove the trailing '\\' from the last relay line
+        mev_boost_service_file_lines[-1] = mev_boost_service_file_lines[-1].rstrip(' \\')
 
-	with open(lh_validator_temp_file, 'w') as f:
-		f.write(lh_validator_service_file)
+        mev_boost_service_file_lines.extend([
+            '',
+            '[Install]',
+            'WantedBy=multi-user.target',
+    ])
+    elif eth_network == 'goerli':
+        for relay in goerli_relay_options:
+            relay_line = f'    -relay {relay["url"]} \\'
+            mev_boost_service_file_lines.append(relay_line)
 
-	os.system(f'sudo cp {lh_beacon_temp_file} {lh_beacon_service_file_path}')
-	os.system(f'sudo cp {lh_validator_temp_file} {lh_validator_service_file_path}')
-	os.remove(lh_beacon_temp_file)
-	os.remove(lh_validator_temp_file)
+        # Remove the trailing '\\' from the last relay line
+        mev_boost_service_file_lines[-1] = mev_boost_service_file_lines[-1].rstrip(' \\')
+
+        mev_boost_service_file_lines.extend([
+            '',
+            '[Install]',
+            'WantedBy=multi-user.target',
+    ])
+    else:
+        for relay in sepolia_relay_options:
+            relay_line = f'    -relay {relay["url"]} \\'
+            mev_boost_service_file_lines.append(relay_line)
+
+        # Remove the trailing '\\' from the last relay line
+        mev_boost_service_file_lines[-1] = mev_boost_service_file_lines[-1].rstrip(' \\')
+
+        mev_boost_service_file_lines.extend([
+            '',
+            '[Install]',
+            'WantedBy=multi-user.target',
+    ])
+    
+
+    mev_boost_service_file = '\n'.join(mev_boost_service_file_lines)
+
+    mev_boost_temp_file = 'mev_boost_temp.service'
+    mev_boost_service_file_path = '/etc/systemd/system/mevboost.service'
+
+    with open(mev_boost_temp_file, 'w') as f:
+        f.write(mev_boost_service_file)
+
+    os.system(f'sudo cp {mev_boost_temp_file} {mev_boost_service_file_path}')
+    os.remove(mev_boost_temp_file)
 
 # Reload the systemd daemon
 subprocess.run(['sudo', 'systemctl', 'daemon-reload'])
@@ -946,13 +1121,14 @@ else:
     inbound_ports = ""
 print(f'\nFirewall Status:\nInbound Ports: {inbound_ports}Outbound Ports: 9000, 30303, 6673/tcp\n')
 
-if eth_exec_client == 'geth':
+if execution_client == 'geth':
     geth_version = subprocess.run(["geth", "--version"], stdout=subprocess.PIPE).stdout
     if geth_version is not None:
         geth_version = geth_version.decode()
+        geth_version = geth_version.split(" ")[-1]
     else:
         geth_version = ""
-    print(f'Geth Version: \n{geth_version}')
+    print(f'Geth Version: v{geth_version}')
 
 if consensus_client == 'lighthouse':
     lighthouse_version = subprocess.run(["lighthouse", "-V"], stdout=subprocess.PIPE).stdout
@@ -962,10 +1138,10 @@ if consensus_client == 'lighthouse':
         lighthouse_version = ""
     print(f'Lighthouse Version: \n{lighthouse_version}')
 
-if eth_exec_client == 'besu':
+if execution_client == 'besu':
     print(f'Besu Version: {besu_version}\n')
     
-if eth_exec_client == 'nethermind':
+if execution_client == 'nethermind':
     print(f'Nethermind Version: \n{nethermind_version}\n')
 
 if consensus_client == 'teku':
@@ -983,15 +1159,133 @@ if consensus_client == 'prysm':
     prysm_version = subprocess.run(["beacon-chain", "--version"], stdout=subprocess.PIPE).stdout
     if prysm_version is not None:
         prysm_version = prysm_version.decode().splitlines()[0]
+        prysm_version = prysm_version.split("/")[-2]
     else:
         prysm_version = ""
-    print(f'Prysm Version: \n{prysm_version}\n')
+    print(f'Prysm Version: {prysm_version}\n')
 
 print(f'Network: {eth_network_cap}')
 
 if consensus_client in ['lighthouse', 'teku', 'prsym', 'nimbus']:
     print(f'CheckPointSyncURL: {sync_url}')
 
+print(f'MEV Boost: {mev_on_off.upper()}')
+
 print(f'Validator Fee Address: {fee_address}')
 
 print("\nInstallation successful! See details above")
+
+#### OPEN VALIDATOR CONTROLLER
+# Create Variables
+# User names
+#execution_user
+#beacon_user
+#validator_user
+
+
+
+# Create a new Tkinter window
+window = Tk()
+
+# Set the window title
+window.title("Ethereum Validator Controller")
+
+# Set the window size
+window.geometry("1800x600")
+
+# Set the window background color
+window.configure(bg='gray')
+
+# Define the commands for the buttons
+def open_journal():
+    # Open the terminal for the execution user
+    os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu {execution_user}; exec bash"')
+    
+    if consensus_client in ('teku', 'nimbus'):
+        # Open the terminal for the consensus client
+        os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu {consensus_client}; exec bash"')
+    else:
+        # Open the terminals for the beacon and validator users
+        os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu {beacon_user}; exec bash"')
+        os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu {validator_user}; exec bash"')
+    
+    if mev_on_off == 'on':
+        # Open the terminal for MEV Boost
+        os.system(f'gnome-terminal -- bash -c "journalctl -fu mevboost; exec bash"')
+
+def start_services():
+    os.system(f'sudo systemctl start {execution_user}')
+    
+    if consensus_client in ('nimbus', 'teku'):
+        os.system(f'sudo systemctl start {consensus_client}')
+    else:
+        os.system(f'sudo systemctl start {beacon_user}')
+        os.system(f'sudo systemctl start {validator_user}')
+    
+    if mev_on_off == 'on':
+        os.system('sudo systemctl start mevboost')
+
+def stop_services():
+    os.system(f'sudo systemctl stop {execution_user}')
+    
+    if consensus_client in ('nimbus', 'teku'):
+        os.system(f'sudo systemctl stop {consensus_client}')
+    else:
+        os.system(f'sudo systemctl stop {beacon_user}')
+        os.system(f'sudo systemctl stop {validator_user}')
+    
+    if mev_on_off == 'on':
+        os.system('sudo systemctl stop mevboost')
+
+# Create a canvas for the buttons
+canvas = Canvas(window, width=1800, height=600, bg='black')
+canvas.pack()
+
+# Draw horizontal gray stripes on the canvas
+canvas.create_rectangle(500, 80, 1300, 140, fill="light gray")
+canvas.create_rectangle(500, 160, 1300, 220, fill="light gray")
+canvas.create_rectangle(500, 240, 1300, 300, fill="light gray")
+canvas.create_rectangle(500, 320, 1300, 380, fill="light gray")
+
+# Add the text inside the gray bars
+canvas.create_text(900, 110, text=f"Ethereum Network: {eth_network.upper()}", fill="black", font=("Helvetica", 18)) 
+canvas.create_text(900, 190, text=f"Execution Client: {execution_client.upper()}", fill="black", font=("Helvetica", 18))
+canvas.create_text(900, 270, text=f"Consensus Client: {consensus_client.upper()}", fill="black", font=("Helvetica", 18))
+canvas.create_text(900, 350, text=f"MEV Boost: {mev_on_off.upper()}", fill="black", font=("Helvetica", 18))
+
+# Redefine the D-Pad buttons with a different approach, using four separate buttons
+d_pad_up = Button(window, bg='black', activebackground='black', width=4, height=5)
+d_pad_down = Button(window, bg='black', activebackground='black', width=4, height=5)
+d_pad_left = Button(window, bg='black', activebackground='black', width=6, height=3)
+d_pad_right = Button(window, bg='black', activebackground='black', width=5, height=3)
+
+canvas.create_window(310, 220, window=d_pad_up)
+canvas.create_window(310, 330, window=d_pad_down)
+canvas.create_window(265, 275, window=d_pad_left)
+canvas.create_window(365, 275, window=d_pad_right)
+
+# Draw a thick white cross around the D-Pad buttons
+canvas.create_line(305, 210, 305, 340, fill="white", width=15)
+canvas.create_line(275, 275, 405, 275, fill="white", width=15)
+
+# Create Start_Validator Buttom
+start_validator_button = Button(window, text="START VALIDATOR", bg='white', activebackground='light green', font=("Helvetica", 28), width=20, command=start_services)
+canvas.create_window(900, 460, window=start_validator_button)
+
+# Create Journal button
+journal_button = Button(window, text="Journals", bg='white', activebackground='light blue', font=("Helvetica", 24), width=8, command=open_journal)
+canvas.create_window(1500, 150, window=journal_button)
+
+# Create a large white button
+stop_button_bg = Button(window, bg='white', activebackground='white', width=16, height=3)
+canvas.create_window(1500, 320, window=stop_button_bg)
+
+# Create red button "STOP"
+stop_button = Button(window, text="STOP", bg='red', activebackground='orangered', font=("Helvetica", 24), width=6, command=stop_services)
+canvas.create_window(1500, 320, window=stop_button)
+
+# Draw thick white box around the entire controller
+canvas.create_rectangle(100, 50, 1700, 550, outline="white", width=20)
+
+# Start the Tkinter event loop
+window.mainloop()
