@@ -35,7 +35,7 @@ Key Generation Resources: [Waygu Key Generator](https://github.com/stake-house/w
 
 <br />  
 
-The final command will open the validator install menu:
+**The final command will open the validator install menu:**
 
 ![Screenshot from 2023-05-14 22-21-14](https://github.com/accidental-green/validator-install/assets/72235883/ee1e9d42-47c7-48c1-bde7-26de6e587037)
 
@@ -57,9 +57,13 @@ Once you make the selections and click "Install" it will perform the following t
 
 
 \
-You can open the journals to view or start/stop the services with a single click!
+You can open the journals for viewing, then start the validator with a single click!
 
 The services should start, find peers, and eventually begin syncing. If you notice any errors (red/yellow), visit [EthStaker Discord](https://discord.com/invite/ucsTcA2wTq) for help.
+
+**Once the journals are opened and services started, it should look something like this:**
+
+![Screenshot from 2023-05-14 23-57-29](https://github.com/accidental-green/validator-install/assets/72235883/cf12f61d-5dd7-4758-b127-2e1536c0dedb)
 
 \
 **Disclaimer:** This script is for testing purposes only. Do not use on mainnet Validators.
