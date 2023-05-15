@@ -23,11 +23,7 @@ Key Generation Resources: [Waygu Key Generator](https://github.com/stake-house/w
 
 **To run the script, use these commands:**
 
-`sudo apt-get update`
-
-`sudo apt-get install git`
-
-`pip install requests`
+`sudo apt-get update && sudo apt-get install git curl -y && sudo pip install requests`
 
 `git clone https://github.com/accidental-green/validator-install.git`
 
