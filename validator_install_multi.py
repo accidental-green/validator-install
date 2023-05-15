@@ -1211,7 +1211,7 @@ def open_journal():
     
     if mev_on_off == 'on':
         # Open the terminal for MEV Boost
-        os.system(f'gnome-terminal -- bash -c "journalctl -fu mevboost; exec bash"')
+        os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu mevboost; exec bash"')
 
 def start_services():
     os.system(f'sudo systemctl start {execution_user}')
