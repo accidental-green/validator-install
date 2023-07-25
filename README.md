@@ -1,4 +1,4 @@
-# Instant Validators
+# Ethereum Validator Install
 Install and configure an Ethereum Validator (mainnet/testnet) in a few clicks, as opposed to hours normally spent on manual configuration.
 
 Now updated to include multiple clients (geth, besu, nethermind, teku, nimbus, lighthouse, prysm)
@@ -22,9 +22,9 @@ To run the script, use these commands:
 
 `sudo apt-get update && sudo apt-get install git curl -y && sudo pip install requests`
 
-`git clone https://github.com/accidental-green/instant-validators.git`
+`git clone https://github.com/accidental-green/validator_install.git`
 
-`python3 instant-validators/instant-validators.py`
+`python3 validator-install/validator_install.py`
 <br>
 <br>
 ## **Installation Setup:**
