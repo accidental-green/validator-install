@@ -30,12 +30,15 @@ To run the script, use these commands:
 ## **Installation Setup:**
 <br>
 
-![Screenshot from 2023-07-24 21-52-21](https://github.com/accidental-green/instant-validators/assets/72235883/d19f7646-0510-485a-a7fa-5f8f3b303356)
+![Screenshot from 2023-07-24 21-52-21](https://github.com/accidental-green/validator-install/assets/72235883/9e35c49e-e291-4d5a-b6c5-37d99f30329d)
+
+
 
 ## **Successful Installation:**
 <br>
 
-![Screenshot from 2023-07-24 21-58-10](https://github.com/accidental-green/instant-validators/assets/72235883/b522d4e9-6be8-486f-8345-7bb471da705f)
+![Screenshot from 2023-07-24 21-58-10](https://github.com/accidental-green/validator-install/assets/72235883/32356d0e-7585-4c27-bfa5-6206218b2ef7)
+
 
 Once installation is complete, you can start the clients and begin syncing.
 
