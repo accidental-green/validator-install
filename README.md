@@ -22,7 +22,7 @@ To run the script, use these commands:
 
 `sudo apt-get update && sudo apt-get install git curl -y && sudo pip install requests`
 
-`git clone https://github.com/accidental-green/validator_install.git`
+`git clone https://github.com/accidental-green/validator-install.git`
 
 `python3 validator-install/validator_install.py`
 <br>
