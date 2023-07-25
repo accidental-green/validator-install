@@ -1,7 +1,7 @@
 # Ethereum Validator Install
 Install and configure an Ethereum Validator (mainnet/testnet) in a few clicks, as opposed to hours normally spent on manual configuration.
 
-Now updated to include multiple clients (geth, besu, nethermind, teku, nimbus, lighthouse, prysm)
+Includes support for multiple clients (geth, besu, nethermind, teku, nimbus, lighthouse, prysm)
 
 Simple Python script that simplifies and automates the installation and configuration of the Ethereum validator node.
 
@@ -30,7 +30,7 @@ To run the script, use these commands:
 ## **Installation Setup:**
 <br>
 
-![Screenshot from 2023-07-24 21-52-21](https://github.com/accidental-green/validator-install/assets/72235883/9e35c49e-e291-4d5a-b6c5-37d99f30329d)
+![image](https://github.com/accidental-green/validator-install/assets/72235883/4c43d9fd-d6d4-4db0-b835-b7ad5bf1d0a2)
 
 
 
