@@ -33,7 +33,7 @@ def import_keystore():
 
     # Determine user's home directory
     home_dir = os.path.expanduser('~')
-    keystore_dir = os.path.join(home_dir, 'validator_keys')
+    keystore_dir = os.path.join(home_dir, 'validator_keys_temp')
 
     # Ensure the 'validator_keys' directory exists
     if not os.path.exists(keystore_dir):
@@ -51,11 +51,13 @@ def import_keystore():
 
 def update_keystore_button():
     home_dir = os.path.expanduser('~')
-    keystore_dir = os.path.join(home_dir, 'validator_keys')
-    if os.path.exists(keystore_dir):
+    keystore_dir = os.path.join(home_dir, 'validator_keys_temp')
+    
+    if os.path.exists(keystore_dir) and os.listdir(keystore_dir):
+        # Directory exists and is not empty
         keystore_button.config(text="Keystore successfully imported!", bg="#90EE90", fg="#282C34") # Light green with changed text
     else:
-        keystore_button.config(text="Import Keystore", bg="#282C34", fg="#ABB2BF")  # Original color and text
+        keystore_button.config(text="Import Keystore", bg="#61afef", fg="#282C34")  # Original color and text
    
 def submit():
     global network_var, execution_var, consensus_var, mev_var, eth_address_entry
@@ -137,14 +139,14 @@ eth_address_entry = tk.Entry(root, font=entry_font, takefocus=True)
 eth_address_entry.grid(column=1, row=4, padx=30, pady=30, ipadx=40, ipady=10)
 
 # Create the note label
-note_label = tk.Label(root, text="Note: Installation occurs in the terminal", bg="#282C34", fg="#ABB2BF", font=label_font, anchor='w')
+note_label = tk.Label(root, text="Note: Installation / Key import continues in terminal", bg="#282C34", fg="#ABB2BF", font=label_font, anchor='w')
 note_label.grid(column=0, row=6, padx=30, pady=60, sticky='w')
 
 # Keystore import
 keystore_label = tk.Label(root, text='Import existing validator keystore? (optional):', bg="#282C34", fg="#ABB2BF", font=label_font, anchor='e')
 keystore_label.grid(column=0, row=5, padx=30, pady=30, sticky='e')
 
-keystore_button = tk.Button(root, text="Import Keystore", command=import_keystore, bg="#282C34", fg="#ABB2BF", activebackground="#61AFEF", activeforeground="#282C34", font=label_font, takefocus=True)
+keystore_button = tk.Button(root, text="Import Keystore", command=import_keystore, bg="#282C34", fg="#ABB2BF", activebackground="#282C34", activeforeground="#ABB2BF", font=label_font, takefocus=True)
 keystore_button.grid(column=1, row=5, padx=30, pady=30)
 
 
@@ -579,7 +581,7 @@ if consensus_client == 'teku':
     print(f"Download URL: {download_url}")
     
     # Copy the keystore files
-    subprocess.run(['sudo', 'cp', '-a', os.path.join(os.environ["HOME"], 'validator_keys'), '/var/lib/teku'])
+    subprocess.run(['sudo', 'cp', '-a', os.path.join(os.environ["HOME"], 'validator_keys_temp'), '/var/lib/teku'])
 
     keystore_directory = '/var/lib/teku/validator_keys'
 
@@ -659,7 +661,7 @@ if consensus_client == 'prysm':
     'sudo',
     '/usr/local/bin/validator',
     'accounts', 'import',
-    '--keys-dir', f'{os.environ["HOME"]}/validator_keys',
+    '--keys-dir', f'{os.environ["HOME"]}/validator_keys_temp',
     '--wallet-dir', '/var/lib/prysm/validator',
     '--mainnet'
     ])
@@ -760,7 +762,7 @@ if consensus_client == 'nimbus':
         '/usr/local/bin/nimbus_beacon_node',
         'deposits', 'import',
         '--data-dir=/var/lib/nimbus',
-        f'{os.environ["HOME"]}/validator_keys'
+        f'{os.environ["HOME"]}/validator_keys_temp'
     ])
 
     # Set ownership for /var/lib/nimbus directory
@@ -825,7 +827,7 @@ if consensus_client == 'lighthouse':
     '/usr/local/bin/lighthouse', 
     '--network', 'mainnet', 
     'account', 'validator', 'import', 
-    '--directory', f'{os.environ["HOME"]}/validator_keys', 
+    '--directory', f'{os.environ["HOME"]}/validator_keys_temp', 
     '--datadir', '/var/lib/lighthouse'
     ])
     
