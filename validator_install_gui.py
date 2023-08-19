@@ -15,11 +15,47 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import font
 from tkinter import *
-
+from tkinter import filedialog, font
 
 def open_menu(event):
     event.widget.tk.call('tk::MenuInvoke', event.widget._nametowidget(event.widget.cget("menu")), 0)
 
+def get_usb_mount_point():
+    user = os.getlogin()
+    return f"/media/{user}"
+
+def import_keystore():
+    file_path = filedialog.askopenfilename(title="Select a Keystore", initialdir=get_usb_mount_point(), filetypes=[("Keystore files", "*.json"), ("All files", "*.*")])
+
+    if not file_path:  # If the user cancels the dialog
+        return None
+
+    # Determine user's home directory
+    home_dir = os.path.expanduser('~')
+    keystore_dir = os.path.join(home_dir, 'keystore')
+
+    # Ensure the 'keystore' directory exists
+    if not os.path.exists(keystore_dir):
+        os.makedirs(keystore_dir)
+
+    # Copy the imported file into the 'keystore' directory
+    destination_path = os.path.join(keystore_dir, os.path.basename(file_path))
+    shutil.copy(file_path, destination_path)
+
+    # Update the button after importing the keystore
+    update_keystore_button()
+
+    # Returns the path where the file was copied to
+    return destination_path
+
+def update_keystore_button():
+    home_dir = os.path.expanduser('~')
+    keystore_dir = os.path.join(home_dir, 'keystore')
+    if os.path.exists(keystore_dir):
+        keystore_button.config(text="Keystore successfully imported!", bg="#90EE90", fg="#282C34") # Light green with changed text
+    else:
+        keystore_button.config(text="Import Keystore", bg="#282C34", fg="#ABB2BF")  # Original color and text
+   
 def submit():
     global network_var, execution_var, consensus_var, mev_var, eth_address_entry
 
@@ -101,13 +137,23 @@ eth_address_entry.grid(column=1, row=4, padx=30, pady=30, ipadx=40, ipady=10)
 
 # Create the note label
 note_label = tk.Label(root, text="Note: Installation occurs in the terminal", bg="#282C34", fg="#ABB2BF", font=label_font, anchor='w')
-note_label.grid(column=0, row=5, padx=30, pady=60, sticky='w')
+note_label.grid(column=0, row=6, padx=30, pady=60, sticky='w')
+
+# Keystore import
+keystore_label = tk.Label(root, text='Import existing validator keystore? (optional):', bg="#282C34", fg="#ABB2BF", font=label_font, anchor='e')
+keystore_label.grid(column=0, row=5, padx=30, pady=30, sticky='e')
+
+keystore_button = tk.Button(root, text="Import Keystore", command=import_keystore, bg="#282C34", fg="#ABB2BF", activebackground="#61AFEF", activeforeground="#282C34", font=label_font, takefocus=True)
+keystore_button.grid(column=1, row=5, padx=30, pady=30)
+
 
 # Submit button
 submit_button = tk.Button(root, text="Install", command=lambda: setattr(root, "saved_data", submit()), bg="#282C34", fg="#ABB2BF", activebackground="#61AFEF", activeforeground="#282C34", font=label_font, takefocus=True)
-submit_button.grid(column=1, row=5, padx=30, pady=60)
+submit_button.grid(column=1, row=6, padx=30, pady=60)
 
 root.saved_data = submit
+
+update_keystore_button()
 
 root.mainloop()
 
@@ -1175,117 +1221,3 @@ print(f'Validator Fee Address: {fee_address}')
 
 print("\nInstallation successful! See details above")
 
-#### OPEN VALIDATOR CONTROLLER
-# Create Variables
-# User names
-#execution_user
-#beacon_user
-#validator_user
-
-
-
-# Create a new Tkinter window
-window = Tk()
-
-# Set the window title
-window.title("Ethereum Validator Controller")
-
-# Set the window size
-window.geometry("1800x600")
-
-# Set the window background color
-window.configure(bg='gray')
-
-# Define the commands for the buttons
-def open_journal():
-    # Open the terminal for the execution user
-    os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu {execution_user}; exec bash"')
-    
-    if consensus_client in ('teku', 'nimbus'):
-        # Open the terminal for the consensus client
-        os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu {consensus_client}; exec bash"')
-    else:
-        # Open the terminals for the beacon and validator users
-        os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu {beacon_user}; exec bash"')
-        os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu {validator_user}; exec bash"')
-    
-    if mev_on_off == 'on':
-        # Open the terminal for MEV Boost
-        os.system(f'gnome-terminal -- bash -c "sudo journalctl -fu mevboost; exec bash"')
-
-def start_services():
-    os.system(f'sudo systemctl start {execution_user}')
-    
-    if consensus_client in ('nimbus', 'teku'):
-        os.system(f'sudo systemctl start {consensus_client}')
-    else:
-        os.system(f'sudo systemctl start {beacon_user}')
-        os.system(f'sudo systemctl start {validator_user}')
-    
-    if mev_on_off == 'on':
-        os.system('sudo systemctl start mevboost')
-
-def stop_services():
-    os.system(f'sudo systemctl stop {execution_user}')
-    
-    if consensus_client in ('nimbus', 'teku'):
-        os.system(f'sudo systemctl stop {consensus_client}')
-    else:
-        os.system(f'sudo systemctl stop {beacon_user}')
-        os.system(f'sudo systemctl stop {validator_user}')
-    
-    if mev_on_off == 'on':
-        os.system('sudo systemctl stop mevboost')
-
-# Create a canvas for the buttons
-canvas = Canvas(window, width=1800, height=600, bg='black')
-canvas.pack()
-
-# Draw horizontal gray stripes on the canvas
-canvas.create_rectangle(500, 80, 1300, 140, fill="light gray")
-canvas.create_rectangle(500, 160, 1300, 220, fill="light gray")
-canvas.create_rectangle(500, 240, 1300, 300, fill="light gray")
-canvas.create_rectangle(500, 320, 1300, 380, fill="light gray")
-
-# Add the text inside the gray bars
-canvas.create_text(900, 110, text=f"Ethereum Network: {eth_network.upper()}", fill="black", font=("Helvetica", 18)) 
-canvas.create_text(900, 190, text=f"Execution Client: {execution_client.upper()}", fill="black", font=("Helvetica", 18))
-canvas.create_text(900, 270, text=f"Consensus Client: {consensus_client.upper()}", fill="black", font=("Helvetica", 18))
-canvas.create_text(900, 350, text=f"MEV Boost: {mev_on_off.upper()}", fill="black", font=("Helvetica", 18))
-
-# Redefine the D-Pad buttons with a different approach, using four separate buttons
-d_pad_up = Button(window, bg='black', activebackground='black', width=4, height=5)
-d_pad_down = Button(window, bg='black', activebackground='black', width=4, height=5)
-d_pad_left = Button(window, bg='black', activebackground='black', width=6, height=3)
-d_pad_right = Button(window, bg='black', activebackground='black', width=5, height=3)
-
-canvas.create_window(310, 220, window=d_pad_up)
-canvas.create_window(310, 330, window=d_pad_down)
-canvas.create_window(265, 275, window=d_pad_left)
-canvas.create_window(365, 275, window=d_pad_right)
-
-# Draw a thick white cross around the D-Pad buttons
-canvas.create_line(305, 210, 305, 340, fill="white", width=15)
-canvas.create_line(275, 275, 405, 275, fill="white", width=15)
-
-# Create Start_Validator Buttom
-start_validator_button = Button(window, text="START VALIDATOR", bg='white', activebackground='light green', font=("Helvetica", 28), width=20, command=start_services)
-canvas.create_window(900, 460, window=start_validator_button)
-
-# Create Journal button
-journal_button = Button(window, text="Journals", bg='white', activebackground='light blue', font=("Helvetica", 24), width=8, command=open_journal)
-canvas.create_window(1500, 150, window=journal_button)
-
-# Create a large white button
-stop_button_bg = Button(window, bg='white', activebackground='white', width=16, height=3)
-canvas.create_window(1500, 320, window=stop_button_bg)
-
-# Create red button "STOP"
-stop_button = Button(window, text="STOP", bg='red', activebackground='orangered', font=("Helvetica", 24), width=6, command=stop_services)
-canvas.create_window(1500, 320, window=stop_button)
-
-# Draw thick white box around the entire controller
-canvas.create_rectangle(100, 50, 1700, 550, outline="white", width=20)
-
-# Start the Tkinter event loop
-window.mainloop()
