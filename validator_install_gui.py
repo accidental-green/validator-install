@@ -5,6 +5,7 @@ import fnmatch
 import json
 import random
 import tarfile
+import getpass
 import shutil
 import subprocess
 import sys
@@ -32,13 +33,13 @@ def import_keystore():
 
     # Determine user's home directory
     home_dir = os.path.expanduser('~')
-    keystore_dir = os.path.join(home_dir, 'keystore')
+    keystore_dir = os.path.join(home_dir, 'validator_keys')
 
-    # Ensure the 'keystore' directory exists
+    # Ensure the 'validator_keys' directory exists
     if not os.path.exists(keystore_dir):
         os.makedirs(keystore_dir)
 
-    # Copy the imported file into the 'keystore' directory
+    # Copy the imported file into the 'validator_keys' directory
     destination_path = os.path.join(keystore_dir, os.path.basename(file_path))
     shutil.copy(file_path, destination_path)
 
@@ -50,7 +51,7 @@ def import_keystore():
 
 def update_keystore_button():
     home_dir = os.path.expanduser('~')
-    keystore_dir = os.path.join(home_dir, 'keystore')
+    keystore_dir = os.path.join(home_dir, 'validator_keys')
     if os.path.exists(keystore_dir):
         keystore_button.config(text="Keystore successfully imported!", bg="#90EE90", fg="#282C34") # Light green with changed text
     else:
@@ -539,7 +540,7 @@ if consensus_client == 'teku':
     # Create User and directories
     subprocess.run(['sudo', 'useradd', '--no-create-home', '--shell', '/bin/false', 'teku'])
     subprocess.run(['sudo', 'mkdir', '-p', '/var/lib/teku'])
-    subprocess.run(['sudo', 'chown', '-R', 'teku:teku', '/var/lib/teku'])
+    subprocess.run(['sudo', 'mkdir', '-p', '/var/lib/teku/validator_keys'])
 
     # Change to the home folder
     os.chdir(os.path.expanduser("~"))
@@ -576,6 +577,39 @@ if consensus_client == 'teku':
 
     print("Teku binary installed successfully!")
     print(f"Download URL: {download_url}")
+    
+    # Copy the keystore files
+    subprocess.run(['sudo', 'cp', '-a', os.path.join(os.environ["HOME"], 'validator_keys'), '/var/lib/teku'])
+
+    keystore_directory = '/var/lib/teku/validator_keys'
+
+    def get_and_store_password(json_file):
+        txt_file_name = os.path.splitext(json_file)[0] + '.txt'
+        txt_file_path = os.path.join(keystore_directory, txt_file_name)
+        
+        # Prompt for the password and store it in a bytearray
+        teku_pass = bytearray(getpass.getpass(prompt=f'Please enter password for {json_file}: '), 'utf-8')
+        teku_pass_string = teku_pass.decode('utf-8')
+        
+        with open(txt_file_path, 'w') as f:
+            f.write(teku_pass_string)
+        
+        # Modify permissions if needed
+        subprocess.run(['sudo', 'chmod', '600', txt_file_path])
+        
+        # Overwrite the password in memory with zero bytes
+        for i in range(len(teku_pass)):
+            teku_pass[i] = 0
+
+    # List all files ending with .json in the keystore directory
+    json_files = [f for f in os.listdir(keystore_directory) if f.endswith('.json')]
+
+    # For each json file, prompt for password and create a corresponding txt file
+    for json_file in json_files:
+        get_and_store_password(json_file)
+
+    # Change ownership
+    subprocess.run(['sudo', 'chown', '-R', 'teku:teku', '/var/lib/teku'])
 
 ################ PRYSM ###################
 if consensus_client == 'prysm':
@@ -589,9 +623,8 @@ if consensus_client == 'prysm':
     # Create prysmvalidator user
     subprocess.run(['sudo', 'useradd', '--no-create-home', '--shell', '/bin/false', 'prysmvalidator'])
 
-    # Create and set ownership for /var/lib/prysm/validator directory
+    # Create /var/lib/prysm/validator directory
     subprocess.run(['sudo', 'mkdir', '-p', '/var/lib/prysm/validator'])
-    subprocess.run(['sudo', 'chown', '-R', 'prysmvalidator:prysmvalidator', '/var/lib/prysm/validator'])
 
     base_url = "https://api.github.com/repos/prysmaticlabs/prysm/releases/latest"
     response = requests.get(base_url)
@@ -619,6 +652,44 @@ if consensus_client == 'prysm':
     else:
         print("Error: Could not find the latest release links.")
 
+    # Import validator keys
+    print("Importing Validator Keystore...")
+    
+    subprocess.run([
+    'sudo',
+    '/usr/local/bin/validator',
+    'accounts', 'import',
+    '--keys-dir', f'{os.environ["HOME"]}/validator_keys',
+    '--wallet-dir', '/var/lib/prysm/validator',
+    '--mainnet'
+    ])
+    
+    def get_and_store_password():
+        # Prompt for the password and store it in a bytearray
+        prysm_pass = bytearray(getpass.getpass(prompt='Please enter your Prysm wallet password: '), 'utf-8')
+        prysm_pass_string = prysm_pass.decode('utf-8')
+
+        
+        prysm_pass_temp_file = 'password_temp.txt'
+        prysm_pass_path = '/var/lib/prysm/validator/password.txt'
+        
+        # Write the password to the file
+        with open(prysm_pass_temp_file, 'w') as f:
+            f.write(prysm_pass_string)
+
+        os.system(f'sudo cp {prysm_pass_temp_file} {prysm_pass_path}')
+        os.remove(prysm_pass_temp_file)            
+
+        # Overwrite the password in memory with zero bytes
+        for i in range(len(prysm_pass)):
+            prysm_pass[i] = 0
+
+    get_and_store_password()
+
+    # Set ownership of prysmvalidator
+    subprocess.run(['sudo', 'chown', '-R', 'prysmvalidator:prysmvalidator', '/var/lib/prysm/validator'])    
+    
+
 ################ NIMBUS ##################
 if consensus_client == 'nimbus':
     # Create /var/lib/nimbus directory
@@ -629,9 +700,6 @@ if consensus_client == 'nimbus':
     
     # Create nimbus user
     subprocess.run(['sudo', 'useradd', '--no-create-home', '--shell', '/bin/false', 'nimbus'])
-
-    # Set ownership for /var/lib/nimbus directory
-    subprocess.run(['sudo', 'chown', '-R', 'nimbus:nimbus', '/var/lib/nimbus'])
 
     # Change to the home folder
     os.chdir(os.path.expanduser("~"))
@@ -686,6 +754,18 @@ if consensus_client == 'nimbus':
     print("Nimbus binary installed successfully!")
     print(f"Download URL: {download_url}")
 
+    # Import Validator keystore
+    subprocess.run([
+        'sudo',
+        '/usr/local/bin/nimbus_beacon_node',
+        'deposits', 'import',
+        '--data-dir=/var/lib/nimbus',
+        f'{os.environ["HOME"]}/validator_keys'
+    ])
+
+    # Set ownership for /var/lib/nimbus directory
+    subprocess.run(['sudo', 'chown', '-R', 'nimbus:nimbus', '/var/lib/nimbus'])
+
 ############ LIGHTHOUSE ##################
 if consensus_client == 'lighthouse':
     # Create User and directories
@@ -694,7 +774,6 @@ if consensus_client == 'lighthouse':
     subprocess.run(['sudo', 'mkdir', '-p', '/var/lib/lighthouse/beacon'])
     subprocess.run(['sudo', 'mkdir', '-p', '/var/lib/lighthouse/validators'])
     subprocess.run(['sudo', 'chown', '-R', 'lighthousebeacon:lighthousebeacon', '/var/lib/lighthouse/beacon'])
-    subprocess.run(['sudo', 'chown', '-R', 'lighthousevalidator:lighthousevalidator', '/var/lib/lighthouse/validators'])
 
     # Change to the home folder
     os.chdir(os.path.expanduser("~"))
@@ -737,6 +816,21 @@ if consensus_client == 'lighthouse':
 
     print("Lighthouse binary installed successfully!")
     print(f"Download URL: {download_url}")
+
+    # Lighthouse Import Keystore
+    print("Importing Validator Keystore...")
+
+    subprocess.run([
+    'sudo', 
+    '/usr/local/bin/lighthouse', 
+    '--network', 'mainnet', 
+    'account', 'validator', 'import', 
+    '--directory', f'{os.environ["HOME"]}/validator_keys', 
+    '--datadir', '/var/lib/lighthouse'
+    ])
+    
+    # Change ownership of validator directory
+    subprocess.run(['sudo', 'chown', '-R', 'lighthousevalidator:lighthousevalidator', '/var/lib/lighthouse/validators'])
 
 ###### GETH SERVICE FILE #############
 if execution_client == 'geth':
