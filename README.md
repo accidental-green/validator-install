@@ -26,6 +26,10 @@ You can also follow Somer's guide to safely generate keys offline and manually i
 
 
 
+After clicking "Install", the pop up will close and installation will finalize in the terminal.
+<br>
+If you are importing validator keys, enter the keystore password into the terminal when prompted
+
 ## **Successful Installation:**
 <br>
 
