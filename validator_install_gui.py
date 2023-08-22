@@ -1,5 +1,4 @@
 import os
-import requests
 import re
 import fnmatch
 import json
@@ -13,11 +12,14 @@ import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
+import requests
 import tkinter as tk
-from tkinter import font
-from tkinter import *
 from tkinter import filedialog, font
 
+# Define variables
+temp_keystore_dir = f'{os.environ["HOME"]}/validator_keys_temp'
+
+# GUI Code
 def open_menu(event):
     event.widget.tk.call('tk::MenuInvoke', event.widget._nametowidget(event.widget.cget("menu")), 0)
 
@@ -28,19 +30,15 @@ def get_usb_mount_point():
 def import_keystore():
     file_path = filedialog.askopenfilename(title="Select a Keystore", initialdir=get_usb_mount_point(), filetypes=[("Keystore files", "*.json"), ("All files", "*.*")])
 
-    if not file_path:  # If the user cancels the dialog
+    if not file_path:  # If user cancels the dialog
         return None
 
-    # Determine user's home directory
-    home_dir = os.path.expanduser('~')
-    keystore_dir = os.path.join(home_dir, 'validator_keys_temp')
+    # Ensure the 'validator_keys_temp' directory exists
+    if not os.path.exists(temp_keystore_dir):
+        os.makedirs(temp_keystore_dir)
 
-    # Ensure the 'validator_keys' directory exists
-    if not os.path.exists(keystore_dir):
-        os.makedirs(keystore_dir)
-
-    # Copy the imported file into the 'validator_keys' directory
-    destination_path = os.path.join(keystore_dir, os.path.basename(file_path))
+    # Copy the imported file into the 'validator_keys_temp' directory
+    destination_path = os.path.join(temp_keystore_dir, os.path.basename(file_path))
     shutil.copy(file_path, destination_path)
 
     # Update the button after importing the keystore
@@ -51,9 +49,8 @@ def import_keystore():
 
 def update_keystore_button():
     home_dir = os.path.expanduser('~')
-    keystore_dir = os.path.join(home_dir, 'validator_keys_temp')
     
-    if os.path.exists(keystore_dir) and os.listdir(keystore_dir):
+    if os.path.exists(temp_keystore_dir) and os.listdir(temp_keystore_dir):
         # Directory exists and is not empty
         keystore_button.config(text="Keystore successfully imported!", bg="#90EE90", fg="#282C34") # Light green with changed text
     else:
@@ -580,36 +577,60 @@ if consensus_client == 'teku':
     print("Teku binary installed successfully!")
     print(f"Download URL: {download_url}")
     
-    # Copy the keystore files
-    subprocess.run(['sudo', 'cp', '-a', os.path.join(os.environ["HOME"], 'validator_keys_temp'), '/var/lib/teku'])
+    ### IMPORT KEYSTORE ####
 
-    keystore_directory = '/var/lib/teku/validator_keys'
+    # Check if temp_keystore_dir exists, then get the .json files
+    json_files_in_source = [f for f in os.listdir(temp_keystore_dir)] if os.path.exists(temp_keystore_dir) else []
 
-    def get_and_store_password(json_file):
-        txt_file_name = os.path.splitext(json_file)[0] + '.txt'
-        txt_file_path = os.path.join(keystore_directory, txt_file_name)
+    json_files_in_source = [f for f in json_files_in_source if f.endswith('.json')]
+
+    if len(json_files_in_source) > 0:  # Ensure source directory is not empty
+        # Check if the teku validator_keys directory exists, otherwise create it
+        validator_keys_dir = '/var/lib/teku/validator_keys'
+        if not os.path.exists(validator_keys_dir):
+            subprocess.run(['sudo', 'mkdir', '-p', validator_keys_dir])
+
+        for json_file in json_files_in_source:
+            source_path = os.path.join(temp_keystore_dir, json_file)
+            dest_path = os.path.join(validator_keys_dir, json_file)
+            
+            if os.path.exists(dest_path):
+                print(f"Ignoring keystore {json_file} as it already exists.")
+            else:
+                subprocess.run(['sudo', 'cp', source_path, dest_path])
+                print(f"Successfully imported keystore {json_file}.")
         
-        # Prompt for the password and store it in a bytearray
-        teku_pass = bytearray(getpass.getpass(prompt=f'Please enter password for {json_file}: '), 'utf-8')
-        teku_pass_string = teku_pass.decode('utf-8')
+        teku_keystore_dir = '/var/lib/teku/validator_keys'
         
-        with open(txt_file_path, 'w') as f:
-            f.write(teku_pass_string)
-        
-        # Modify permissions if needed
-        subprocess.run(['sudo', 'chmod', '600', txt_file_path])
-        
-        # Overwrite the password in memory with zero bytes
-        for i in range(len(teku_pass)):
-            teku_pass[i] = 0
+        def get_and_store_password(json_file):
+            txt_file_name = os.path.splitext(json_file)[0] + '.txt'
+            txt_file_path = os.path.join(teku_keystore_dir, txt_file_name)
+            
+            # Prompt for the password and store it directly in a bytearray
+            teku_pass = bytearray(getpass.getpass(prompt=f'Please enter password for {json_file}: '), 'utf-8')
+            
+            # Use a temporary file for writing the password.txt file
+            temp_file_name = 'temp_password_file.txt'
+            with open(temp_file_name, 'wb') as f:
+                os.write(f.fileno(), teku_pass)
+            
+            # Use sudo to move the temp file to the actual desired location
+            subprocess.run(['sudo', 'mv', temp_file_name, txt_file_path])
+            
+            # Modify permissions of the text file so it's not readable by others
+            subprocess.run(['sudo', 'chmod', '600', txt_file_path])
+            
+            # Overwrite the password in memory with zero bytes
+            for i in range(len(teku_pass)):
+                teku_pass[i] = 0
 
-    # List all files ending with .json in the keystore directory
-    json_files = [f for f in os.listdir(keystore_directory) if f.endswith('.json')]
+        # List all files ending with .json in the teku keystore directory
+        json_files = [f for f in os.listdir(teku_keystore_dir) if f.endswith('.json')]
 
-    # For each json file, prompt for password and create a corresponding txt file
-    for json_file in json_files:
-        get_and_store_password(json_file)
-
+        # For each json file, prompt for password and create a corresponding txt file
+        for json_file in json_files:
+            get_and_store_password(json_file)
+    
     # Change ownership
     subprocess.run(['sudo', 'chown', '-R', 'teku:teku', '/var/lib/teku'])
 
@@ -654,44 +675,47 @@ if consensus_client == 'prysm':
     else:
         print("Error: Could not find the latest release links.")
 
-    # Import validator keys
-    print("Importing Validator Keystore...")
-    
-    subprocess.run([
-    'sudo',
-    '/usr/local/bin/validator',
-    'accounts', 'import',
-    '--keys-dir', f'{os.environ["HOME"]}/validator_keys_temp',
-    '--wallet-dir', '/var/lib/prysm/validator',
-    '--mainnet'
-    ])
-    
-    def get_and_store_password():
-        # Prompt for the password and store it in a bytearray
-        prysm_pass = bytearray(getpass.getpass(prompt='Please enter your Prysm wallet password: '), 'utf-8')
-        prysm_pass_string = prysm_pass.decode('utf-8')
+    # Check if temp_keystore_dir exists, import keys and create password .txt file
+    if os.path.exists(temp_keystore_dir) and os.listdir(temp_keystore_dir):
 
+        # Import validator keys
+        print("Importing Validator Keystore...")
         
-        prysm_pass_temp_file = 'password_temp.txt'
-        prysm_pass_path = '/var/lib/prysm/validator/password.txt'
+        subprocess.run([
+            'sudo',
+            '/usr/local/bin/validator',
+            'accounts', 'import',
+            '--keys-dir', temp_keystore_dir,
+            '--wallet-dir', '/var/lib/prysm/validator',
+            '--mainnet'
+        ])
         
-        # Write the password to the file
-        with open(prysm_pass_temp_file, 'w') as f:
-            f.write(prysm_pass_string)
+        def get_and_store_password():
+            # Prompt for the password and store it directly in a bytearray
+            prysm_pass = bytearray(getpass.getpass(prompt='Please enter your Prysm wallet password: '), 'utf-8')
+            
+            prysm_pass_temp_file = 'password_temp.txt'
+            prysm_pass_path = '/var/lib/prysm/validator/password.txt'
+            
+            # Write the password to the temp file directly from the bytearray
+            with open(prysm_pass_temp_file, 'wb') as f:
+                os.write(f.fileno(), prysm_pass)
 
-        os.system(f'sudo cp {prysm_pass_temp_file} {prysm_pass_path}')
-        os.remove(prysm_pass_temp_file)            
+            # Use sudo to move the temp file to the actual desired location
+            subprocess.run(['sudo', 'mv', prysm_pass_temp_file, prysm_pass_path])
 
-        # Overwrite the password in memory with zero bytes
-        for i in range(len(prysm_pass)):
-            prysm_pass[i] = 0
+            # Modify permissions of the text file so it's not readable by others
+            subprocess.run(['sudo', 'chmod', '600', prysm_pass_path])
+            
+            # Overwrite the password in memory with zero bytes to erase it
+            for i in range(len(prysm_pass)):
+                prysm_pass[i] = 0
 
-    get_and_store_password()
-
+        get_and_store_password()
+        
     # Set ownership of prysmvalidator
     subprocess.run(['sudo', 'chown', '-R', 'prysmvalidator:prysmvalidator', '/var/lib/prysm/validator'])    
     
-
 ################ NIMBUS ##################
 if consensus_client == 'nimbus':
     # Create /var/lib/nimbus directory
@@ -756,15 +780,18 @@ if consensus_client == 'nimbus':
     print("Nimbus binary installed successfully!")
     print(f"Download URL: {download_url}")
 
-    # Import Validator keystore
-    subprocess.run([
-        'sudo',
-        '/usr/local/bin/nimbus_beacon_node',
-        'deposits', 'import',
-        '--data-dir=/var/lib/nimbus',
-        f'{os.environ["HOME"]}/validator_keys_temp'
-    ])
+    # Check if the temp_keystore_dir exists and is not empty
+    if os.path.exists(temp_keystore_dir) and os.listdir(temp_keystore_dir):
 
+        # Import Validator keystore
+        subprocess.run([
+            'sudo',
+            '/usr/local/bin/nimbus_beacon_node',
+            'deposits', 'import',
+            '--data-dir=/var/lib/nimbus',
+            temp_keystore_dir
+        ])
+            
     # Set ownership for /var/lib/nimbus directory
     subprocess.run(['sudo', 'chown', '-R', 'nimbus:nimbus', '/var/lib/nimbus'])
 
@@ -819,17 +846,20 @@ if consensus_client == 'lighthouse':
     print("Lighthouse binary installed successfully!")
     print(f"Download URL: {download_url}")
 
-    # Lighthouse Import Keystore
-    print("Importing Validator Keystore...")
+    # Check if the temp_keystore_dir exists and is not empty, then import
+    if os.path.exists(temp_keystore_dir) and os.listdir(temp_keystore_dir):
 
-    subprocess.run([
-    'sudo', 
-    '/usr/local/bin/lighthouse', 
-    '--network', 'mainnet', 
-    'account', 'validator', 'import', 
-    '--directory', f'{os.environ["HOME"]}/validator_keys_temp', 
-    '--datadir', '/var/lib/lighthouse'
-    ])
+        # Lighthouse Import Keystore
+        print("Importing Validator Keystore...")
+
+        subprocess.run([
+            'sudo', 
+            '/usr/local/bin/lighthouse', 
+            '--network', 'mainnet', 
+            'account', 'validator', 'import', 
+            '--directory', temp_keystore_dir, 
+            '--datadir', '/var/lib/lighthouse'
+        ])
     
     # Change ownership of validator directory
     subprocess.run(['sudo', 'chown', '-R', 'lighthousevalidator:lighthousevalidator', '/var/lib/lighthouse/validators'])
@@ -1017,13 +1047,6 @@ if consensus_client == 'nimbus':
 
     nimbus_service_file = '\n'.join(nimbus_service_file_lines)
 
-#    if sync_url is not None:
-#        subprocess.run([
-#            'sudo', '/usr/local/bin/nimbus_beacon_node', 'trustedNodeSync',
-#            f'--network={eth_network}', '--data-dir=/var/lib/nimbus',
-#            f'--trusted-node-url={sync_url}', '--backfill=false'
-#        ])
-
     nimbus_temp_file = 'nimbus_temp.service'
     nimbus_service_file_path = '/etc/systemd/system/nimbus.service'
 
@@ -1198,7 +1221,7 @@ if mev_on_off == 'on':
         '    -relay-check \\',
     ]
 
-    # Add relay lines from goerli_relay_options
+    # Add relay lines from relay_options
     
     if eth_network == 'mainnet':
         for relay in mainnet_relay_options:
@@ -1254,6 +1277,10 @@ if mev_on_off == 'on':
 
 # Reload the systemd daemon
 subprocess.run(['sudo', 'systemctl', 'daemon-reload'])
+
+# Delete temp keystore files
+validator_keys_temp = os.path.join(os.environ["HOME"], 'validator_keys_temp')
+subprocess.run(['sudo', 'rm', '-rf', validator_keys_temp])
 
 # Print the final output
 inbound_ports = subprocess.run(["sudo", "ufw", "status", "numbered"], stdout=subprocess.PIPE).stdout
