@@ -1,12 +1,12 @@
 # Ethereum Validator Install
-Easily set up and configure an Ethereum Validator for mainnet or testnet within minutes using this installation script. The script is adapted fromn Somer Esat's guides, and simplifies a process that otherwise takes hours of manual configuration.
+Easily set up and configure an Ethereum Validator for mainnet or testnet within minutes using this installation script. The script is adapted from Somer Esat's guides, and simplifies a process that otherwise takes hours of manual configuration.
 
 ## Features:
 
-- **Multi-client Support**: Works with various Ethereum clients including Geth, Besu, Nethermind, Teku, Nimbus, Lighthouse, and Prysm.
-- **Execution, Consensus, and MEV Clients**: Provides the ability to install various Ethereum client types.
+- **Multi-client Support**: Works with various clients including Geth, Besu, Nethermind, Teku, Nimbus, Lighthouse, and Prysm.
+- **Execution, Consensus, and MEV Clients**: Configure various Ethereum clients and MEV settings.
 - **Import Validator Keystores**: Seamlessly import existing keystores to jump-start your validator setup.
-- **Standard Configuration**: Whether you manually follow Somer's guides or use this installation script, the final configuration is identical.
+- **Standard Configuration**: Get the same results as manually following Somer's guides (service files, users, directories, etc.)
 - **GUI & CLI Versions**: Choose the version that suits your comfort level and setup.
 
 ## Prerequisites:
@@ -18,13 +18,13 @@ Execute the following commands to update your system, install packages, and clon
 `git clone https://github.com/accidental-green/validator-install.git`
 
 ## Installation:
-Note: Choose either GUI or CLI installation
+Note: Choose either GUI or CLI installation. Program starts upon running one of these commands:
 
 **GUI Version:**
 
 `python3 validator-install/validator_install_gui.py`
 
-**or, CLI Version:**
+**or CLI Version:**
 
 `python3 validator-install/validator_install_cli.py`
 
@@ -43,10 +43,17 @@ Note: Choose either GUI or CLI installation
 
 After the installation, you can start the clients to commence syncing and attesting.
 
+### Installation Steps (CLI):
+
+If you prefer to run the CLI version, the installation will look like this:
+
+![Screenshot from 2023-07-25 00-06-29](https://github.com/accidental-green/validator-install/assets/72235883/d407c718-c18e-41ad-ae67-a4c5baf03d4b)
+
+
 ## Important Note:
 
-This project is open source and is still under testing. **It has not been audited**. We recommend not using it with mainnet validators until it has undergone further review.
+This project has not been audited. It is open source and still under testing, so currently not recommended to use on mainnet.
 
 ## Credits:
 
-Many thanks to [Somer Esat](https://github.com/SomerEsat/ethereum-staking-guides) for the insightful guides that served as the basis for this project.
+Many thanks to [Somer Esat](https://github.com/SomerEsat/ethereum-staking-guides) for creating the staking guides which served as the basis for this project.
