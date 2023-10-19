@@ -387,11 +387,11 @@ if execution_client == 'nethermind':
     # chown nethermind:nethermind /usr/local/bin/nethermind
     subprocess.run(["sudo", "chown", "nethermind:nethermind", "/usr/local/bin/nethermind"])
 
-    # chown nethermind:nethermind /usr/local/bin/nethermind/Nethermind.Runner
-    subprocess.run(["sudo", "chown", "nethermind:nethermind", "/usr/local/bin/nethermind/Nethermind.Runner"])
+    # chown nethermind:nethermind /usr/local/bin/nethermind/nethermind
+    subprocess.run(["sudo", "chown", "nethermind:nethermind", "/usr/local/bin/nethermind/nethermind"])
 
-    # chmod a+x /usr/local/bin/nethermind/Nethermind.Runner
-    subprocess.run(["sudo", "chmod", "a+x", "/usr/local/bin/nethermind/Nethermind.Runner"])
+    # chmod a+x /usr/local/bin/nethermind/nethermind
+    subprocess.run(["sudo", "chmod", "a+x", "/usr/local/bin/nethermind/nethermind"])
 
     # Remove the temporary zip file
     os.remove(temp_path)
@@ -688,7 +688,7 @@ if execution_client == 'nethermind':
     RestartSec=5
     WorkingDirectory=/var/lib/nethermind
     Environment="DOTNET_BUNDLE_EXTRACT_BASE_DIR=/var/lib/nethermind"
-    ExecStart=/usr/local/bin/nethermind/Nethermind.Runner \\
+    ExecStart=/usr/local/bin/nethermind/nethermind \\
       --config {eth_network} \\
       --datadir /var/lib/nethermind \\
       --Sync.SnapSync true \\
