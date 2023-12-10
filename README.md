@@ -13,7 +13,7 @@ Easily set up and configure an Ethereum Validator for mainnet or testnet within 
 
 Execute the following commands to update your system, install packages, and clone the repo:
 
-`sudo apt-get update && sudo apt-get install git curl -y && sudo pip install requests && sudo apt install python3-tk`
+`sudo apt update && sudo apt install git curl python3-pip python3-tk -y && sudo pip install requests`
 
 `git clone https://github.com/accidental-green/validator-install.git`
 
