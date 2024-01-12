@@ -359,15 +359,23 @@ subprocess.run(['sudo', 'ufw', 'enable'])
 subprocess.run(['sudo', 'ufw', 'status', 'numbered'])
 
 # Install Go & MEV
-if  mev_on_off == "on":
-    # Step 1: Install Go 1.18+
+if mev_on_off == "on":
+    # Install build-essential
+    os.system("sudo apt -y install build-essential")
+
+    # Step 1: Install Go 1.19.6
     os.system("cd $HOME")
     os.system("wget -O go.tar.gz https://go.dev/dl/go1.19.6.linux-amd64.tar.gz")
     os.system("sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go.tar.gz")
     os.system("rm go.tar.gz")
     os.system('echo export PATH=$PATH:/usr/local/go/bin >> $HOME/.bashrc')
     os.system("source $HOME/.bashrc")
-    os.system("go version")
+
+    # Install MEV-Boost with specific CGO_CFLAGS
+    os.system('CGO_CFLAGS="-O -D__BLST_PORTABLE__" go install github.com/flashbots/mev-boost@latest')
+
+    # Copy the MEV-Boost binary to /usr/local/bin
+    os.system("sudo cp $HOME/go/bin/mev-boost /usr/local/bin")
 
     # Step 2: Create mevboost service account
     os.system("sudo useradd --no-create-home --shell /bin/false mevboost")
@@ -1343,4 +1351,3 @@ print(f'MEV Boost: {mev_on_off.upper()}')
 print(f'Validator Fee Address: {fee_address}')
 
 print("\nInstallation successful! See details above")
-
