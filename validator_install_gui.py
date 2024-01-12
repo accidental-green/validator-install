@@ -1335,7 +1335,7 @@ if consensus_client == 'prysm':
 
 print(f'Network: {eth_network_cap}')
 
-if consensus_client in ['lighthouse', 'teku', 'prsym', 'nimbus']:
+if consensus_client in ['lighthouse', 'teku', 'prysm', 'nimbus']:
     print(f'CheckPointSyncURL: {sync_url}')
 
 print(f'MEV Boost: {mev_on_off.upper()}')
